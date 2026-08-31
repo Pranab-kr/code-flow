@@ -1,0 +1,39 @@
+{
+  "name": "code-flow",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "test:rls": "vitest run --project rls",
+    "typecheck": "tsc --noEmit",
+    "grammars": "mkdir -p public/grammars && cp node_modules/web-tree-sitter/web-tree-sitter.wasm public/grammars/ && cp node_modules/tree-sitter-python/tree-sitter-python.wasm node_modules/tree-sitter-cpp/tree-sitter-cpp.wasm node_modules/tree-sitter-java/tree-sitter-java.wasm public/grammars/"
+  },
+  "dependencies": {
+    "geist": "^1.7.2",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.3",
+    "jsdom": "^30.0.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  },
+  "packageManager": "pnpm@12.0.0"
+}

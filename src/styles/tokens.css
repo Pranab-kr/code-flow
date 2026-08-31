@@ -1,0 +1,121 @@
+/* Hallmark · macrostructure: n/a (component scope) · theme: Aurora · genre: atmospheric
+ * tone: technical/atmospheric · anchor hue: cool cyan ~200
+ * drops: Night (default, blooms allowed) · Day (light, blooms dropped)
+ * axes: paper-band=dark · display-style=grotesk-sans · accent-hue=cool
+ *
+ * CONTRAST-VERIFIED 2026-08-31 (OKLCH -> sRGB -> WCAG relative luminance).
+ * All 27 text/non-text pairs pass in BOTH drops. Verified pairs include every
+ * ink/accent on every paper tier and on --color-node, accent-ink on accent fill,
+ * focus on every surface, node-brdr on canvas AND node (3:1 — node shape carries
+ * meaning per spec §10, so an invisible border is an a11y defect), edges on canvas,
+ * and danger/warn/ok on paper.
+ * --color-rule is a DECORATIVE divider (1.71:1 day / 1.94:1 night) and is exempt
+ * from WCAG 1.4.11 — do not "fix" it to 3:1; that reads as heavy-handed.
+ * If you change any L value, re-run the contrast check before committing.
+ */
+
+:root {
+  /* --- Aurora Day (light) is the bare-root definition --- */
+  --color-paper:      oklch(97% 0.006 200);
+  --color-paper-2:    oklch(94% 0.008 200);
+  --color-paper-3:    oklch(90% 0.010 200);
+  --color-ink:        oklch(22% 0.015 200);
+  --color-ink-2:      oklch(49% 0.012 200);
+  --color-ink-3:      oklch(49% 0.010 200);
+  --color-accent:     oklch(49% 0.135 200);
+  --color-accent-ink: oklch(99% 0.002 200);
+  --color-rule:       oklch(80% 0.008 200);
+  --color-focus:      oklch(55% 0.150 200);
+  --color-danger:     oklch(56% 0.170 25);
+  --color-warn:       oklch(55% 0.130 70);
+  --color-ok:         oklch(53% 0.120 150);
+
+  /* Diagram-specific surfaces */
+  --color-canvas:     oklch(95% 0.005 200);
+  --color-node:       oklch(99% 0.002 200);
+  --color-node-brdr:  oklch(62% 0.010 200);
+  --color-edge:       oklch(62% 0.012 200);
+  --color-edge-back:  oklch(63% 0.100 300);
+
+  /* Type — Geist is loaded via next/font in layout.tsx */
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body:    var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --text-xs: 0.75rem;  --text-sm: 0.875rem; --text-base: 1rem;
+  --text-lg: 1.125rem; --text-xl: 1.375rem; --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem; --text-4xl: 3rem;
+  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.5rem);
+  --text-display:   clamp(3rem, 6vw + 1rem, 6rem);
+
+  /* 4pt space scale */
+  --space-2xs: 0.25rem; --space-xs: 0.5rem;  --space-sm: 0.75rem;
+  --space-md: 1rem;     --space-lg: 1.5rem;  --space-xl: 2.5rem;
+  --space-2xl: 4rem;    --space-3xl: 6rem;
+
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 14px; --radius-pill: 999px;
+  --rule-hair: 1px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms; --dur-mid: 180ms;
+
+  /* Night-only. Transparent here so Aurora Day renders NO bloom — a bloom on
+   * light paper is the documented aurora-blob anti-pattern. */
+  --bloom-1: transparent;
+  --bloom-2: transparent;
+}
+
+/* System-dark, unless the user explicitly chose light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-paper:      oklch(16% 0.018 240);
+    --color-paper-2:    oklch(21% 0.020 240);
+    --color-paper-3:    oklch(26% 0.022 240);
+    --color-ink:        oklch(95% 0.006 200);
+    --color-ink-2:      oklch(78% 0.008 200);
+    --color-ink-3:      oklch(64% 0.010 200);
+    --color-accent:     oklch(74% 0.135 200);
+    --color-accent-ink: oklch(16% 0.018 240);
+    --color-rule:       oklch(38% 0.016 240);
+    --color-focus:      oklch(78% 0.140 200);
+    --color-danger:     oklch(70% 0.150 25);
+    --color-warn:       oklch(78% 0.120 70);
+    --color-ok:         oklch(74% 0.110 150);
+
+    --color-canvas:     oklch(13% 0.016 240);
+    --color-node:       oklch(20% 0.020 240);
+    --color-node-brdr:  oklch(50% 0.018 240);
+    --color-edge:       oklch(55% 0.014 220);
+    --color-edge-back:  oklch(66% 0.110 300);
+
+    /* Atmospheric allows up to two fixed radial blooms, never animated */
+    --bloom-1: oklch(40% 0.090 200 / 0.28);
+    --bloom-2: oklch(38% 0.070 300 / 0.20);
+  }
+}
+
+/* Explicit dark wins in both directions */
+:root[data-theme="dark"] {
+  --color-paper:      oklch(16% 0.018 240);
+  --color-paper-2:    oklch(21% 0.020 240);
+  --color-paper-3:    oklch(26% 0.022 240);
+  --color-ink:        oklch(95% 0.006 200);
+  --color-ink-2:      oklch(78% 0.008 200);
+  --color-ink-3:      oklch(64% 0.010 200);
+  --color-accent:     oklch(74% 0.135 200);
+  --color-accent-ink: oklch(16% 0.018 240);
+  --color-rule:       oklch(38% 0.016 240);
+  --color-focus:      oklch(78% 0.140 200);
+  --color-danger:     oklch(70% 0.150 25);
+  --color-warn:       oklch(78% 0.120 70);
+  --color-ok:         oklch(74% 0.110 150);
+  --color-canvas:     oklch(13% 0.016 240);
+  --color-node:       oklch(20% 0.020 240);
+  --color-node-brdr:  oklch(50% 0.018 240);
+  --color-edge:       oklch(55% 0.014 220);
+  --color-edge-back:  oklch(66% 0.110 300);
+  --bloom-1: oklch(40% 0.090 200 / 0.28);
+  --bloom-2: oklch(38% 0.070 300 / 0.20);
+}

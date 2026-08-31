@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Map Hallmark tokens onto Tailwind utilities. Distinct names on the left:
+ * `--color-paper: var(--color-paper)` would be a self-reference, not a mapping. */
+@theme inline {
+  --color-cf-paper: var(--color-paper);
+  --color-cf-paper-2: var(--color-paper-2);
+  --color-cf-paper-3: var(--color-paper-3);
+  --color-cf-ink: var(--color-ink);
+  --color-cf-ink-2: var(--color-ink-2);
+  --color-cf-ink-3: var(--color-ink-3);
+  --color-cf-accent: var(--color-accent);
+  --color-cf-rule: var(--color-rule);
+  --color-cf-canvas: var(--color-canvas);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+/* clip, never hidden — `hidden` on the root breaks position: sticky */
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  /* Two fixed blooms. Transparent in Day, so nothing renders there. */
+  background-image:
+    radial-gradient(ellipse 70% 50% at 15% 0%, var(--bloom-1), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 85% 15%, var(--bloom-2), transparent 70%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100dvh;
+}
+
+/* Instant, never animated — a focus ring that fades in reads as lag */
+*:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Display headers must wrap inside long words, and stay roman */
+h1,
+h2,
+h3 {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  font-style: normal;
+  font-family: var(--font-display);
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+    transition-property: opacity !important;
+    scroll-behavior: auto !important;
+  }
+}
