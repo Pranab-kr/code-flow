@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm grammars && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run --project unit",
@@ -45,6 +45,9 @@
     "jsdom": "^30.0.1",
     "supabase": "2.116.0",
     "tailwindcss": "^4",
+    "tree-sitter-cpp": "0.23.4",
+    "tree-sitter-java": "0.23.5",
+    "tree-sitter-python": "0.25.0",
     "typescript": "^5",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"
