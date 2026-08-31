@@ -14,6 +14,7 @@
     "grammars": "mkdir -p public/grammars && cp node_modules/web-tree-sitter/web-tree-sitter.wasm public/grammars/ && cp node_modules/tree-sitter-python/tree-sitter-python.wasm node_modules/tree-sitter-cpp/tree-sitter-cpp.wasm node_modules/tree-sitter-java/tree-sitter-java.wasm public/grammars/"
   },
   "dependencies": {
+    "elkjs": "0.12.0",
     "geist": "^1.7.2",
     "next": "16.3.3",
     "react": "19.2.8",

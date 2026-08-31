@@ -1,7 +1,3 @@
 allowBuilds:
   sharp: false
-  tree-sitter-c: set this to true or false
-  tree-sitter-cpp: set this to true or false
-  tree-sitter-java: set this to true or false
-  tree-sitter-python: set this to true or false
   unrs-resolver: false
