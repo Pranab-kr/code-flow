@@ -1,0 +1,15 @@
+-- Publish `snapshots` to Realtime so the workbench can follow the analyze job.
+--
+-- Only this table. The client needs to know when the server finished deriving a
+-- graph; it does not need a live feed of `graphs` (it already has its own local
+-- parse on screen) or of `layout_overrides` (the dragging client is the author of
+-- those, so echoing them back would fight the pointer).
+--
+-- RLS still applies: Realtime authenticates the socket with the user's access
+-- token and evaluates the same policies before delivering a row, so publishing a
+-- table does not widen who can read it. `snapshots_own` (0003) is what scopes it.
+--
+-- REPLICA IDENTITY stays DEFAULT (primary key). The payload the UI needs —
+-- status and error — is in the new row of an UPDATE either way; FULL would only
+-- add the old row, at the cost of a bigger WAL record on every write.
+alter publication supabase_realtime add table snapshots;

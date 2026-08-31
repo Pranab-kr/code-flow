@@ -142,7 +142,7 @@ export async function saveSource(
   projectId: string,
   language: string,
   source: string,
-): Promise<{ ok?: true; error?: string }> {
+): Promise<{ ok?: true; error?: string; snapshotId?: string }> {
   if (source.length > MAX_SOURCE_BYTES) {
     return { error: `That is over the ${MAX_SOURCE_BYTES / 1000}KB limit for one snapshot.` };
   }
@@ -172,6 +172,38 @@ export async function saveSource(
 
   // ok:true reports the SAVE, which succeeded. Whether the analysis queued is a
   // separate concern, recorded on the snapshot rather than shown as a save error.
+  //
+  // The id goes back so the client can follow THIS snapshot's server-side status.
+  // Every edit mints a new row, so a client holding only the id it loaded with
+  // would sit watching a snapshot that stopped being current several edits ago.
+  return { ok: true, snapshotId: snapshot.id };
+}
+
+/**
+ * Re-queue analysis for a snapshot that failed.
+ *
+ * What the retry affordance on a `failed` status calls. Deliberately re-sends the
+ * event rather than creating a new snapshot: the source is already stored and
+ * unchanged, so a second row would be history that records no edit.
+ *
+ * Sets `queued` first, so the indicator moves the moment the user clicks even if
+ * the queue takes a while to pick the job up. RLS scopes the update, so this
+ * cannot touch another user's snapshot.
+ */
+export async function retryAnalysis(
+  projectId: string,
+  snapshotId: string,
+): Promise<{ ok?: true; error?: string }> {
+  const supabase = await createServerClient();
+
+  const { error } = await supabase
+    .from('snapshots')
+    .update({ status: 'queued', error: null })
+    .eq('id', snapshotId)
+    .eq('project_id', projectId);
+  if (error) return { error: 'Could not retry that analysis.' };
+
+  await queueAnalysis(snapshotId, projectId);
   return { ok: true };
 }
 

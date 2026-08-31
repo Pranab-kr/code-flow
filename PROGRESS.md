@@ -14,10 +14,10 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Phase** | P1 (of 4) — foundation |
 | **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
-| **Plan 2** | Tasks 1–4 done. **Task 5 (Realtime status) is the only one left.** |
-| **Tests** | 111 unit + 22 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
+| **Tests** | 135 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
 | **Blocked on** | Nothing. |
-| **Next action** | Plan 2 Task 5 (Realtime), then Plan 3 (C++/Java). See `docs/superpowers/plans/2026-09-01-NEXT-SESSION.md`. |
+| **Next action** | **Plan 3 (C++/Java adapters)** — the language picker stops lying. See `docs/superpowers/plans/2026-09-01-NEXT-SESSION.md` §2. |
 
 ---
 
@@ -91,7 +91,7 @@ database, but not yet through a browser.
 | 2 | Auth, project routes, persistence | ✅ `9903c26` |
 | 3 | Inngest analyze job + orphan GC | ✅ `43f55f7`, fixed in `e043d0a` + `d832b49` |
 | 4 | Layout overrides with orphan retention | ✅ `fbbbe9e` |
-| 5 | **Realtime snapshot status** | ☐ **not started — do this next** |
+| 5 | Realtime snapshot status + degrade-never-blank retry | ✅ this session |
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -192,15 +192,15 @@ what "done" means, so an agent can pick one up without inferring the order.
 
 | Plan | File | Contents | Blocked? |
 |---|---|---|---|
-| 2 | `2026-09-01-p1-plan2-persistence.md` | Schema, RLS + 9 negative tests, Inngest analyze job, layout overrides, Realtime | **Yes — Postgres** |
+| 2 | `2026-09-01-p1-plan2-persistence.md` | Schema, RLS + 9 negative tests, Inngest analyze job, layout overrides, Realtime | ✅ **complete** |
 | 3 | `2026-09-01-p1-plan3-cpp-java.md` | C++ and Java adapters, cross-language isomorphism | No — start any time |
 | 4 | `2026-09-01-p1-plan4-export.md` | PNG / JPEG / SVG from the IR, sticky notes | Needs Plan 2 for notes only |
 | 5 | `2026-09-01-p1-plan5-byok-chat.md` | AES-256-GCM vault, provider registry, streaming chat | Needs Plan 2 (auth) |
 | 6 | `2026-09-01-p1-plan6-marketing-a11y.md` | Marketing surface, graph outline view, a11y + 58 slop gates | Last on purpose |
 | 7 | `2026-09-01-p1-plan7-design-system.md` | **Design authority.** Token contract, node shape language, macrostructure pick, 21st.dev sourcing rules, 58-gate sweep | No — Task 1 fixes shipped violations |
 
-**Plan 3 is the one to do next if Postgres stays blocked** — it is pure IR work with no
-database dependency, and it is where the language picker stops lying about C++ and Java.
+**Plan 3 is the one to do next.** It is pure IR work with no database dependency, and it is
+where the language picker stops lying about C++ and Java.
 
 Phases P2 (more languages), P3 (flow debug + sandboxed runner), P4 (AI diagram→code editing)
 each need their own **spec** before any plan. Do not start them from this spec.
@@ -311,6 +311,39 @@ React can only serialize a *reference* to a `"use server"` function; wrapping on
 `(s) => save(s, language)` inside a Server Component throws at render and 500s the page.
 `bind` fills left to right, which is why the pinned arguments must come first.
 
+### 2026-09-01 — The indicator reports two feeds, and 'saved' means the SERVER stored a graph
+`useParse` (browser) and `useSnapshotStatus` (server) are separate facts that routinely
+disagree — a good diagram on screen while the queue is unreachable is a normal state, not a
+contradiction. `describeStatus` in `src/components/workbench/status.ts` ranks them by what the
+user can act on: unsaved edit > work in flight > broken parser > their syntax errors > the
+server. It is a pure function precisely so that ranking is testable; do not inline it back
+into the JSX ternary it replaced.
+
+The word **`saved` now appears only when the server reports `ready`.** Before this it was
+printed whenever a `projectId` existed and the local parse was clean, which claimed durability
+the app had not confirmed. With no word from the server yet the label is `ready`, which
+describes the diagram truthfully without guessing.
+
+A `failed` status adds a label and a retry button. **It never clears the canvas** (spec §11).
+`retryAnalysis` re-sends the event for the existing snapshot rather than inserting a new one:
+the source is unchanged, so another row would be history recording no edit.
+
+### 2026-09-01 — saveSource returns the new snapshot id
+Every edit appends a snapshot, so a client holding only the id the page loaded with would sit
+watching a row that stopped being current several edits ago. The action returns
+`snapshotId` and the Workbench re-points its subscription. This is still source-up-only —
+an id is not a graph, and the server derived it.
+
+### 2026-09-01 — Only `snapshots` is published to Realtime
+Not `graphs` (the client already has its own local parse on screen) and not `layout_overrides`
+(the dragging client authors those, so echoing them back would fight the pointer). REPLICA
+IDENTITY stays DEFAULT: `status` and `error` are in the new row of an UPDATE either way, and
+FULL would only add the old row at the cost of a bigger WAL record on every write.
+
+Publishing a table does **not** widen who can read it — Realtime authenticates the socket with
+the user's access token and evaluates the same policies before delivery. `tests/realtime.test.ts`
+asserts that with a live control rather than trusting it.
+
 ### 2026-08-31 — MCP key referenced by env var, not inlined
 Project-scoped `.mcp.json` is meant to be committed, and `claude mcp add` wrote the key
 literally. Moved to `${TWENTYFIRST_API_KEY}`. Note `21ST_API_KEY` is **not** a valid shell
@@ -354,7 +387,22 @@ Things a future agent will otherwise trip over:
 7. **Do not report a success through the error channel.** Signup returned "check your email"
    as `error`, so a created account rendered in a red box and read as a failure.
    `AuthResult` now has a separate `notice` field. Watch for this shape elsewhere.
-5. **Task 7 writes snapshots via a server action directly**, bypassing Inngest, as an interim
+8. **Realtime `SUBSCRIBED` does not mean postgres_changes is attached.** The channel callback
+   reports `SUBSCRIBED` first; the Postgres replication connection is wired up a moment later
+   and announced by a separate `system` event (`extension: 'postgres_changes', status: 'ok'`).
+   **An UPDATE fired in that window is silently lost.** My first `tests/realtime.test.ts`
+   triggered on `SUBSCRIBED` and timed out against a feature that worked perfectly — proven by
+   a standalone script that waited 6s and received the event.
+
+   The dangerous half: the **negative** RLS case passed in that same broken run, because the
+   write raced the subscription rather than because the policy blocked it — exactly trap 8's
+   "a negative test that passes when it should fail". Opt in with
+   `channel(name, { config: { broadcast: { replication_ready: true } } })`, wait for the
+   `system` event, and give every negative Realtime test a **live control**: subscribe the
+   owner and the intruder to the same row, fire one UPDATE, and assert the owner received it.
+   Silence for the intruder then means the policy and nothing else.
+
+9. **Task 7 writes snapshots via a server action directly**, bypassing Inngest, as an interim
    measure. Plan 2 moves that behind the durable pipeline.
 6. **Do not proceed past a failing RLS test.** A negative test that passes when it should fail
    means the policy is wrong, not that the test is flaky.

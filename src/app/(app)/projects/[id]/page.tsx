@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import { Workbench } from '@/components/workbench/Workbench';
-import { saveSource } from '../actions';
+import { saveSource, retryAnalysis } from '../actions';
 import { saveOverride } from './layout-actions';
 import type { Language } from '@/lib/ir/types';
 
@@ -53,6 +53,7 @@ export default async function ProjectPage({
   const language = project.language as Language;
   const save = saveSource.bind(null, project.id, language);
   const moveNode = saveOverride.bind(null, project.id);
+  const retry = retryAnalysis.bind(null, project.id);
 
   return (
     <Workbench
@@ -61,6 +62,8 @@ export default async function ProjectPage({
       language={language}
       onSave={save}
       onNodeMoved={moveNode}
+      onRetry={retry}
+      initialSnapshotId={project.current_snapshot_id ?? undefined}
       initialSource={snapshot?.source ?? ''}
       initialOverrides={Object.fromEntries(
         (overrides ?? []).map((o) => [o.node_id, { x: o.x, y: o.y }]),
