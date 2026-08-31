@@ -48,6 +48,7 @@ function normalize(ir: ProgramIR) {
 const SUITES: { language: Language; dir: string; ext: string; count: number }[] = [
   { language: 'python', dir: 'python', ext: '.py', count: 12 },
   { language: 'cpp', dir: 'cpp', ext: '.cpp', count: 14 },
+  { language: 'java', dir: 'java', ext: '.java', count: 13 },
 ];
 
 for (const suite of SUITES) {

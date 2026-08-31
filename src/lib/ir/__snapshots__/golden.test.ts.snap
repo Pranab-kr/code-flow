@@ -1485,6 +1485,1538 @@ exports[`cpp golden fixtures > matches the golden IR for 14-switch-fallthrough.c
 }
 `;
 
+exports[`java golden fixtures > matches the golden IR for 01-straight-line.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "StraightLine.swap(int[],int,int)#b0",
+          "target": "StraightLine.swap(int[],int,int)#exit",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "StraightLine.swap(int[],int,int)#entry",
+          "target": "StraightLine.swap(int[],int,int)#b0",
+        },
+      ],
+      "entryId": "StraightLine.swap(int[],int,int)#entry",
+      "exitCount": 1,
+      "id": "StraightLine.swap(int[],int,int)",
+      "nodes": [
+        {
+          "id": "StraightLine.swap(int[],int,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "StraightLine.swap(int[],int,int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int tmp = arr[i];",
+            "arr[i] = arr[j];",
+            "arr[j] = tmp;",
+          ],
+        },
+        {
+          "id": "StraightLine.swap(int[],int,int)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 02-if-else.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "IfElse.classify(int)/if@0/else#b0",
+          "target": "IfElse.classify(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "IfElse.classify(int)/if@0/then#b0",
+          "target": "IfElse.classify(int)#return-b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "IfElse.classify(int)/if@0#cond-b0",
+          "target": "IfElse.classify(int)/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "IfElse.classify(int)/if@0#cond-b0",
+          "target": "IfElse.classify(int)/if@0/then#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "IfElse.classify(int)#b0",
+          "target": "IfElse.classify(int)/if@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "IfElse.classify(int)#entry",
+          "target": "IfElse.classify(int)#b0",
+        },
+      ],
+      "entryId": "IfElse.classify(int)#entry",
+      "exitCount": 1,
+      "id": "IfElse.classify(int)",
+      "nodes": [
+        {
+          "id": "IfElse.classify(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "IfElse.classify(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int sign = 0;",
+            "int scale = 0;",
+          ],
+        },
+        {
+          "id": "IfElse.classify(int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x > 0",
+          ],
+        },
+        {
+          "id": "IfElse.classify(int)/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "sign = 1;",
+            "scale = 10;",
+          ],
+        },
+        {
+          "id": "IfElse.classify(int)/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "sign = -1;",
+            "scale = 20;",
+          ],
+        },
+        {
+          "id": "IfElse.classify(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return sign * scale;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 03-elif-chain.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0/else#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "ElifChain.compare(int,int)/if@0/else/if@0#cond-b0",
+          "target": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "ElifChain.compare(int,int)/if@0/else/if@0#cond-b0",
+          "target": "ElifChain.compare(int,int)/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "ElifChain.compare(int,int)/if@0#cond-b0",
+          "target": "ElifChain.compare(int,int)/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "ElifChain.compare(int,int)/if@0#cond-b0",
+          "target": "ElifChain.compare(int,int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "ElifChain.compare(int,int)#entry",
+          "target": "ElifChain.compare(int,int)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "ElifChain.compare(int,int)#entry",
+      "exitCount": 4,
+      "id": "ElifChain.compare(int,int)",
+      "nodes": [
+        {
+          "id": "ElifChain.compare(int,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a < b",
+          ],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a > b",
+          ],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 1;",
+          ],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a == b",
+          ],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 0;",
+          ],
+        },
+        {
+          "id": "ElifChain.compare(int,int)/if@0/else/if@0/else/if@0/else#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -2;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 04-while-loop.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "WhileLoop.gcd(int,int)/while@0#b1",
+          "target": "WhileLoop.gcd(int,int)/while@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "WhileLoop.gcd(int,int)/while@0#cond-b0",
+          "target": "WhileLoop.gcd(int,int)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "WhileLoop.gcd(int,int)/while@0#cond-b0",
+          "target": "WhileLoop.gcd(int,int)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "WhileLoop.gcd(int,int)#entry",
+          "target": "WhileLoop.gcd(int,int)/while@0#cond-b0",
+        },
+      ],
+      "entryId": "WhileLoop.gcd(int,int)#entry",
+      "exitCount": 1,
+      "id": "WhileLoop.gcd(int,int)",
+      "nodes": [
+        {
+          "id": "WhileLoop.gcd(int,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "WhileLoop.gcd(int,int)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "b != 0",
+          ],
+        },
+        {
+          "id": "WhileLoop.gcd(int,int)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int t = b;",
+            "b = a % b;",
+            "a = t;",
+          ],
+        },
+        {
+          "id": "WhileLoop.gcd(int,int)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return a;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 05-for-range.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "for",
+          "source": "ForRange.total(int)/for@0#b1",
+          "target": "ForRange.total(int)/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "ForRange.total(int)/for@0#cond-b0",
+          "target": "ForRange.total(int)/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "ForRange.total(int)/for@0#cond-b0",
+          "target": "ForRange.total(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "ForRange.total(int)#b0",
+          "target": "ForRange.total(int)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "ForRange.total(int)#entry",
+          "target": "ForRange.total(int)#b0",
+        },
+      ],
+      "entryId": "ForRange.total(int)#entry",
+      "exitCount": 1,
+      "id": "ForRange.total(int)",
+      "nodes": [
+        {
+          "id": "ForRange.total(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "ForRange.total(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int acc = 0;",
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "ForRange.total(int)/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < n; i++",
+          ],
+        },
+        {
+          "id": "ForRange.total(int)/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "acc = acc + i;",
+          ],
+        },
+        {
+          "id": "ForRange.total(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return acc;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 06-nested-loops.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "for",
+          "source": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0/then#b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0#cond-b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0#cond-b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "NestedLoops.bubbleSort(int[])/for@0/for@0#cond-b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "NestedLoops.bubbleSort(int[])/for@0/for@0#cond-b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "NestedLoops.bubbleSort(int[])/for@0#b1",
+          "target": "NestedLoops.bubbleSort(int[])/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "NestedLoops.bubbleSort(int[])/for@0#cond-b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "NestedLoops.bubbleSort(int[])/for@0#cond-b0",
+          "target": "NestedLoops.bubbleSort(int[])#exit",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "NestedLoops.bubbleSort(int[])#b0",
+          "target": "NestedLoops.bubbleSort(int[])/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "NestedLoops.bubbleSort(int[])#entry",
+          "target": "NestedLoops.bubbleSort(int[])#b0",
+        },
+      ],
+      "entryId": "NestedLoops.bubbleSort(int[])#entry",
+      "exitCount": 1,
+      "id": "NestedLoops.bubbleSort(int[])",
+      "nodes": [
+        {
+          "id": "NestedLoops.bubbleSort(int[])#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])#b0",
+          "kind": "basic",
+          "statements": [
+            "int n = arr.length;",
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < n; i++",
+          ],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int j = 0;",
+          ],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])/for@0/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "j < n - i - 1; j++",
+          ],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[j] > arr[j + 1]",
+          ],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])/for@0/for@0/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "int tmp = arr[j];",
+            "arr[j] = arr[j + 1];",
+            "arr[j + 1] = tmp;",
+          ],
+        },
+        {
+          "id": "NestedLoops.bubbleSort(int[])#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 07-break-continue.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "continue",
+          "label": "continue",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0/then#continue-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0#cond-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0/then#continue-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0#cond-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1/then#b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1/then#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1/then#break-b1",
+          "target": "BreakContinue.firstEvenAfter(int[],int)#return-b1",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1#cond-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1#cond-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0#cond-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "BreakContinue.firstEvenAfter(int[],int)/foreach@0#cond-b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "BreakContinue.firstEvenAfter(int[],int)#b0",
+          "target": "BreakContinue.firstEvenAfter(int[],int)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "BreakContinue.firstEvenAfter(int[],int)#entry",
+          "target": "BreakContinue.firstEvenAfter(int[],int)#b0",
+        },
+      ],
+      "entryId": "BreakContinue.firstEvenAfter(int[],int)#entry",
+      "exitCount": 1,
+      "id": "BreakContinue.firstEvenAfter(int[],int)",
+      "nodes": [
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int found = -1;",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "x in xs",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x <= floor",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@0/then#continue-b0",
+          "kind": "basic",
+          "statements": [
+            "continue",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x % 2 == 0",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1/then#b0",
+          "kind": "basic",
+          "statements": [
+            "found = x;",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)/foreach@0/if@1/then#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "BreakContinue.firstEvenAfter(int[],int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return found;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 08-labeled-break.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0/then#b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0/then#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break outer",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0/then#break-b1",
+          "target": "LabeledBreak.firstZeroRow(int[][])#return-b1",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0#cond-b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0#cond-b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0#cond-b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0#cond-b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0#b1",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0#cond-b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "LabeledBreak.firstZeroRow(int[][])/for@0#cond-b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "LabeledBreak.firstZeroRow(int[][])#b0",
+          "target": "LabeledBreak.firstZeroRow(int[][])/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "LabeledBreak.firstZeroRow(int[][])#entry",
+          "target": "LabeledBreak.firstZeroRow(int[][])#b0",
+        },
+      ],
+      "entryId": "LabeledBreak.firstZeroRow(int[][])#entry",
+      "exitCount": 1,
+      "id": "LabeledBreak.firstZeroRow(int[][])",
+      "nodes": [
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])#b0",
+          "kind": "basic",
+          "statements": [
+            "int found = -1;",
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < grid.length; i++",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int j = 0;",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "j < grid[i].length; j++",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "grid[i][j] == 0",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "found = i;",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])/for@0/for@0/if@0/then#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break outer",
+          ],
+        },
+        {
+          "id": "LabeledBreak.firstZeroRow(int[][])#return-b1",
+          "kind": "return",
+          "statements": [
+            "return found;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 09-multi-return.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "MultiReturn.boundsCheck(int[],int)/if@0#cond-b0",
+          "target": "MultiReturn.boundsCheck(int[],int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "MultiReturn.boundsCheck(int[],int)/if@0#cond-b0",
+          "target": "MultiReturn.boundsCheck(int[],int)/if@1#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "MultiReturn.boundsCheck(int[],int)/if@1#cond-b0",
+          "target": "MultiReturn.boundsCheck(int[],int)/if@1/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "MultiReturn.boundsCheck(int[],int)/if@1#cond-b0",
+          "target": "MultiReturn.boundsCheck(int[],int)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "MultiReturn.boundsCheck(int[],int)#entry",
+          "target": "MultiReturn.boundsCheck(int[],int)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "MultiReturn.boundsCheck(int[],int)#entry",
+      "exitCount": 3,
+      "id": "MultiReturn.boundsCheck(int[],int)",
+      "nodes": [
+        {
+          "id": "MultiReturn.boundsCheck(int[],int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "MultiReturn.boundsCheck(int[],int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i < 0",
+          ],
+        },
+        {
+          "id": "MultiReturn.boundsCheck(int[],int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+        {
+          "id": "MultiReturn.boundsCheck(int[],int)/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i >= arr.length",
+          ],
+        },
+        {
+          "id": "MultiReturn.boundsCheck(int[],int)/if@1/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -2;",
+          ],
+        },
+        {
+          "id": "MultiReturn.boundsCheck(int[],int)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return arr[i];",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 10-try-finally.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": "finally",
+          "source": "TryFinally.readCount(String)/try@0/catch-0#return-b0",
+          "target": "TryFinally.readCount(String)/try@0#finally",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "TryFinally.readCount(String)/try@0/finally/if@0/then#b0",
+          "target": "TryFinally.readCount(String)#exit",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "TryFinally.readCount(String)/try@0/finally/if@0#cond-b0",
+          "target": "TryFinally.readCount(String)/try@0/finally/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "TryFinally.readCount(String)/try@0/finally/if@0#cond-b0",
+          "target": "TryFinally.readCount(String)#exit",
+        },
+        {
+          "kind": "exception",
+          "label": "exception",
+          "source": "TryFinally.readCount(String)/try@0#b0",
+          "target": "TryFinally.readCount(String)/try@0/catch-0#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "TryFinally.readCount(String)/try@0#b0",
+          "target": "TryFinally.readCount(String)/try@0#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "TryFinally.readCount(String)/try@0#finally",
+          "target": "TryFinally.readCount(String)/try@0/finally/if@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": "finally",
+          "source": "TryFinally.readCount(String)/try@0#return-b1",
+          "target": "TryFinally.readCount(String)/try@0#finally",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "TryFinally.readCount(String)#b0",
+          "target": "TryFinally.readCount(String)/try@0#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "TryFinally.readCount(String)#entry",
+          "target": "TryFinally.readCount(String)#b0",
+        },
+      ],
+      "entryId": "TryFinally.readCount(String)#entry",
+      "exitCount": 1,
+      "id": "TryFinally.readCount(String)",
+      "nodes": [
+        {
+          "id": "TryFinally.readCount(String)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "TryFinally.readCount(String)#b0",
+          "kind": "basic",
+          "statements": [
+            "Reader handle = null;",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)/try@0#b0",
+          "kind": "basic",
+          "statements": [
+            "handle = open(path);",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)/try@0#return-b1",
+          "kind": "return",
+          "statements": [
+            "return countBytes(handle);",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)/try@0/catch-0#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 0;",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)/try@0#finally",
+          "kind": "basic",
+          "statements": [
+            "finally:",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)/try@0/finally/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "handle != null",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)/try@0/finally/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "handle.close();",
+          ],
+        },
+        {
+          "id": "TryFinally.readCount(String)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 11-recursion.java 1`] = `
+{
+  "callEdges": [
+    {
+      "from": "Recursion.fib(int)",
+      "to": "Recursion.fib(int)",
+    },
+  ],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "Recursion.fib(int)/if@0#cond-b0",
+          "target": "Recursion.fib(int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "Recursion.fib(int)/if@0#cond-b0",
+          "target": "Recursion.fib(int)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "Recursion.fib(int)#entry",
+          "target": "Recursion.fib(int)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "Recursion.fib(int)#entry",
+      "exitCount": 2,
+      "id": "Recursion.fib(int)",
+      "nodes": [
+        {
+          "id": "Recursion.fib(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "Recursion.fib(int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "n < 2",
+          ],
+        },
+        {
+          "id": "Recursion.fib(int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return n;",
+          ],
+        },
+        {
+          "id": "Recursion.fib(int)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return fib(n - 1) + fib(n - 2);",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 12-binary-search.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0/else#b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0/then#b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0#cond-b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0#cond-b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0/if@0#cond-b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0/if@0#cond-b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "BinarySearch.binarySearch(int[],int)/while@0#b1",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0#cond-b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "BinarySearch.binarySearch(int[],int)/while@0#cond-b0",
+          "target": "BinarySearch.binarySearch(int[],int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "BinarySearch.binarySearch(int[],int)#b0",
+          "target": "BinarySearch.binarySearch(int[],int)/while@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "BinarySearch.binarySearch(int[],int)#entry",
+          "target": "BinarySearch.binarySearch(int[],int)#b0",
+        },
+      ],
+      "entryId": "BinarySearch.binarySearch(int[],int)#entry",
+      "exitCount": 2,
+      "id": "BinarySearch.binarySearch(int[],int)",
+      "nodes": [
+        {
+          "id": "BinarySearch.binarySearch(int[],int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int lo = 0;",
+            "int hi = arr.length - 1;",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "lo <= hi",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int mid = (lo + hi) / 2;",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] == target",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return mid;",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] < target",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "lo = mid + 1;",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)/while@0/if@0/else/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "hi = mid - 1;",
+          ],
+        },
+        {
+          "id": "BinarySearch.binarySearch(int[],int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
+exports[`java golden fixtures > matches the golden IR for 13-switch-forms.java 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.colonForm(int)/switch@0/case-1#b0",
+          "target": "SwitchForms.colonForm(int)/switch@0/case-2#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.colonForm(int)/switch@0/case-2#b0",
+          "target": "SwitchForms.colonForm(int)/switch@0/case-2#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "SwitchForms.colonForm(int)/switch@0/case-2#break-b1",
+          "target": "SwitchForms.colonForm(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.colonForm(int)/switch@0/case-default#b0",
+          "target": "SwitchForms.colonForm(int)#return-b1",
+        },
+        {
+          "kind": "case",
+          "label": "case 1",
+          "source": "SwitchForms.colonForm(int)/switch@0#disc-b0",
+          "target": "SwitchForms.colonForm(int)/switch@0/case-1#b0",
+        },
+        {
+          "kind": "case",
+          "label": "case 2",
+          "source": "SwitchForms.colonForm(int)/switch@0#disc-b0",
+          "target": "SwitchForms.colonForm(int)/switch@0/case-2#b0",
+        },
+        {
+          "kind": "default",
+          "label": "default",
+          "source": "SwitchForms.colonForm(int)/switch@0#disc-b0",
+          "target": "SwitchForms.colonForm(int)/switch@0/case-default#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.colonForm(int)#b0",
+          "target": "SwitchForms.colonForm(int)/switch@0#disc-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.colonForm(int)#entry",
+          "target": "SwitchForms.colonForm(int)#b0",
+        },
+      ],
+      "entryId": "SwitchForms.colonForm(int)#entry",
+      "exitCount": 1,
+      "id": "SwitchForms.colonForm(int)",
+      "nodes": [
+        {
+          "id": "SwitchForms.colonForm(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int r = 0;",
+          ],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)/switch@0#disc-b0",
+          "kind": "switch",
+          "statements": [
+            "v",
+          ],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)/switch@0/case-1#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 1;",
+          ],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)/switch@0/case-2#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 2;",
+          ],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)/switch@0/case-2#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)/switch@0/case-default#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 9;",
+          ],
+        },
+        {
+          "id": "SwitchForms.colonForm(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return r;",
+          ],
+        },
+      ],
+    },
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.arrowForm(int)/switch@0/case-1#b0",
+          "target": "SwitchForms.arrowForm(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.arrowForm(int)/switch@0/case-2#b0",
+          "target": "SwitchForms.arrowForm(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.arrowForm(int)/switch@0/case-default#b0",
+          "target": "SwitchForms.arrowForm(int)#return-b1",
+        },
+        {
+          "kind": "case",
+          "label": "case 1",
+          "source": "SwitchForms.arrowForm(int)/switch@0#disc-b0",
+          "target": "SwitchForms.arrowForm(int)/switch@0/case-1#b0",
+        },
+        {
+          "kind": "case",
+          "label": "case 2",
+          "source": "SwitchForms.arrowForm(int)/switch@0#disc-b0",
+          "target": "SwitchForms.arrowForm(int)/switch@0/case-2#b0",
+        },
+        {
+          "kind": "default",
+          "label": "default",
+          "source": "SwitchForms.arrowForm(int)/switch@0#disc-b0",
+          "target": "SwitchForms.arrowForm(int)/switch@0/case-default#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.arrowForm(int)#b0",
+          "target": "SwitchForms.arrowForm(int)/switch@0#disc-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "SwitchForms.arrowForm(int)#entry",
+          "target": "SwitchForms.arrowForm(int)#b0",
+        },
+      ],
+      "entryId": "SwitchForms.arrowForm(int)#entry",
+      "exitCount": 1,
+      "id": "SwitchForms.arrowForm(int)",
+      "nodes": [
+        {
+          "id": "SwitchForms.arrowForm(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "SwitchForms.arrowForm(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int r = 0;",
+          ],
+        },
+        {
+          "id": "SwitchForms.arrowForm(int)/switch@0#disc-b0",
+          "kind": "switch",
+          "statements": [
+            "v",
+          ],
+        },
+        {
+          "id": "SwitchForms.arrowForm(int)/switch@0/case-1#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 1;",
+          ],
+        },
+        {
+          "id": "SwitchForms.arrowForm(int)/switch@0/case-2#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 2;",
+          ],
+        },
+        {
+          "id": "SwitchForms.arrowForm(int)/switch@0/case-default#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 9;",
+          ],
+        },
+        {
+          "id": "SwitchForms.arrowForm(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return r;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "java",
+}
+`;
+
 exports[`python golden fixtures > matches the golden IR for 01-straight-line.py 1`] = `
 {
   "callEdges": [],

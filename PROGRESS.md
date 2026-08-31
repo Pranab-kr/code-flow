@@ -15,9 +15,9 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
-| **Tests** | 135 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Tests** | 219 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 3 (C++/Java adapters)** — the language picker stops lying. See `docs/superpowers/plans/2026-09-01-NEXT-SESSION.md` §2. |
+| **Next action** | **Plan 3 Task 4:** language detection and honest picker wiring. |
 
 ---
 
@@ -61,8 +61,9 @@ Authentication → Sign In / Providers → Confirm email.
 
 ## Next up
 
-**`docs/superpowers/plans/2026-09-01-NEXT-SESSION.md`** — read that first. It has the
-remaining work in order, with the traps that cost the most time this session.
+Continue Plan 3 Task 4 in `docs/superpowers/plans/2026-09-01-p1-plan3-cpp-java.md`:
+test-drive `detectLanguage(source)`, wire paste detection into the workbench/project creation
+flow, then verify Python, C++, and Java diagrams by hand.
 
 ---
 
@@ -92,6 +93,15 @@ database, but not yet through a browser.
 | 3 | Inngest analyze job + orphan GC | ✅ `43f55f7`, fixed in `e043d0a` + `d832b49` |
 | 4 | Layout overrides with orphan retention | ✅ `fbbbe9e` |
 | 5 | Realtime snapshot status + degrade-never-blank retry | ✅ this session |
+
+## Task board — Plan 3
+
+| Task | Deliverable | State |
+|---|---|---|
+| 1 | C++ adapter, goto/labels, switch fallthrough, 14 goldens | ✅ `4648666` |
+| 2 | Java adapter, labeled jumps, arrow/colon switches, 13 goldens | ✅ worktree |
+| 3 | Cross-language isomorphism for four algorithms | ✅ 12 fixtures + 4 passing comparisons |
+| 4 | Language detection and honest picker wiring | **NEXT** |
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -349,15 +359,37 @@ Project-scoped `.mcp.json` is meant to be committed, and `claude mcp add` wrote 
 literally. Moved to `${TWENTYFIRST_API_KEY}`. Note `21ST_API_KEY` is **not** a valid shell
 identifier (leading digit) — hence `TWENTYFIRST_API_KEY`.
 
+### 2026-09-01 — Plan 3 required two explicit builder extensions
+Plan 3 called `src/lib/ir/builder.ts` frozen, but the existing `SynNode` contract declared
+`goto` and `label` without implementing either. The C++ adapter could not resolve a target or
+create a jump edge from the adapter alone, so the builder now attaches labels to emitted nodes
+and resolves forward/backward gotos after walking the function.
+
+Java arrow-switch arms (`case x ->`) also cannot be represented as colon-style fallthrough
+arms without inventing visible `break` statements the user did not write. `SynNode.meta` now
+has `noFallthrough`, set by the Java adapter on an arrow switch; the builder rejoins every arm
+after the switch. These are intentional boundary extensions, not language checks in the
+builder. Reconsider the `SynNode` boundary before adding a fourth language.
+
+### 2026-09-01 — Java labels attach to the loop, not its hoisted initializer
+A classic Java `for` normalizes to `[initializer, loop]`. A label around that statement must
+be attached to the normalized loop element by kind; assuming a single mapped node silently
+dropped `break outer` and `continue outer`. The focused tests and `08-labeled-break.java`
+golden now enforce the correct target.
+
+### 2026-09-01 — Three-language CFG normalization is enforced, not assumed
+`src/lib/ir/isomorphism.test.ts` compares binary search, BFS, quicksort, and Fibonacci across
+Python, C++, and Java. All four comparisons pass without adapter changes: node kinds, edge
+kinds, and exit counts match across all three languages.
+
 ---
 
 ## Known gaps and traps
 
 Things a future agent will otherwise trip over:
 
-1. **`src/lib/ir/languages/registry.ts` will point `cpp` and `java` at the Python adapter** as
-   a placeholder so the registry shape is right. It is **not working code**. Plan 3 replaces it.
-   Do not ship a C++ or Java language option to users before then.
+1. ~~C++ and Java registry entries are Python placeholders.~~ **Resolved.** Both now use real
+   adapters. The UI picker and paste detection remain Plan 3 Task 4.
 2. ~~Grammar WASM build may fail~~ **Solved.** Prebuilt `.wasm` ships in each
    `tree-sitter-<lang>` package; `pnpm grammars` is a `cp`. No Docker or emscripten needed.
    Do **not** use `tree-sitter-wasms` (legacy `dylink`, empty error message).

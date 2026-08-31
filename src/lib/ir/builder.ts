@@ -51,6 +51,15 @@ export interface SynNode {
     caseValue?: string;
     /** Explicit flag. Never infer a default arm from a missing caseValue. */
     isDefault?: boolean;
+    /**
+     * `switch`: arms do NOT fall through into one another (Java 14+ `case x ->`).
+     *
+     * A property of the switch FORM, so it is set once on the switch rather than
+     * inferred per arm. The alternative — having the adapter append a synthetic
+     * `break` to every arm — would draw a `break` node the user never wrote, and
+     * the diagram is meant to show derived structure, not invented statements.
+     */
+    noFallthrough?: boolean;
     /** `if`: the else arm. `loop`: python's for/while else. */
     elseBody?: SynNode[];
     finallyBody?: SynNode[];
@@ -391,8 +400,13 @@ class GraphBuilder {
 
     const cases = stmt.children.filter((c) => c.kind === 'case');
     const hasDefault = cases.some((c) => c.meta?.isDefault === true);
+    // Java 14+ `case x ->` arms do not fall through. Set on the switch FORM rather
+    // than faked with a synthetic `break` node the user never wrote.
+    const noFallthrough = stmt.meta?.noFallthrough === true;
     /** Exits of the previous case body, for implicit fallthrough. */
     let fallthrough: Pending[] = [];
+    /** Arm exits that leave the switch directly, when arms cannot fall through. */
+    const armExits: Pending[] = [];
 
     cases.forEach((c, i) => {
       const isDefault = c.meta?.isDefault === true;
@@ -407,12 +421,19 @@ class GraphBuilder {
       this.ids.enterRole(`case-${isDefault ? 'default' : (c.meta?.caseValue ?? i)}`);
       const bodyOut = this.walk(c.children, entry);
       this.ids.exit();
-      fallthrough = c.children.some((x) => x.kind === 'break') ? [] : bodyOut;
+      if (noFallthrough) {
+        // Every arm rejoins after the switch instead of entering its successor.
+        armExits.push(...bodyOut);
+        fallthrough = [];
+      } else {
+        fallthrough = c.children.some((x) => x.kind === 'break') ? [] : bodyOut;
+      }
     });
 
     // Only the final case's exits fall out; every earlier case either broke
-    // (collected in ctx.breaks) or fell through into its successor.
-    const out = fallthrough;
+    // (collected in ctx.breaks) or fell through into its successor. With
+    // noFallthrough, every arm's exits were collected instead.
+    const out = noFallthrough ? armExits : fallthrough;
 
     this.loops.pop();
     this.ids.exit();
