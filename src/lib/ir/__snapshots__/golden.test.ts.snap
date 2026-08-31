@@ -1,0 +1,1192 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`python golden fixtures > matches the golden IR for 01-straight-line.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "swap(arr,i,j)#b0",
+          "target": "swap(arr,i,j)#exit",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "swap(arr,i,j)#entry",
+          "target": "swap(arr,i,j)#b0",
+        },
+      ],
+      "entryId": "swap(arr,i,j)#entry",
+      "exitCount": 1,
+      "id": "swap(arr,i,j)",
+      "nodes": [
+        {
+          "id": "swap(arr,i,j)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "swap(arr,i,j)#b0",
+          "kind": "basic",
+          "statements": [
+            "tmp = arr[i]",
+            "arr[i] = arr[j]",
+            "arr[j] = tmp",
+          ],
+        },
+        {
+          "id": "swap(arr,i,j)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 02-if-else.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(x)/if@0/else#b0",
+          "target": "classify(x)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(x)/if@0/then#b0",
+          "target": "classify(x)#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "classify(x)/if@0#cond-b0",
+          "target": "classify(x)/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "classify(x)/if@0#cond-b0",
+          "target": "classify(x)/if@0/then#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(x)#entry",
+          "target": "classify(x)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "classify(x)#entry",
+      "exitCount": 1,
+      "id": "classify(x)",
+      "nodes": [
+        {
+          "id": "classify(x)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "classify(x)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x > 0",
+          ],
+        },
+        {
+          "id": "classify(x)/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "sign = 1",
+            "label = "positive"",
+          ],
+        },
+        {
+          "id": "classify(x)/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "sign = -1",
+            "label = "negative"",
+          ],
+        },
+        {
+          "id": "classify(x)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return sign, label",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 03-elif-chain.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "compare(a,b)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "compare(a,b)/if@0/else/if@0/else/if@0/else#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "compare(a,b)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "compare(a,b)/if@0/else/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "compare(a,b)/if@0/else/if@0#cond-b0",
+          "target": "compare(a,b)/if@0/else/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "compare(a,b)/if@0/else/if@0#cond-b0",
+          "target": "compare(a,b)/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "compare(a,b)/if@0#cond-b0",
+          "target": "compare(a,b)/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "compare(a,b)/if@0#cond-b0",
+          "target": "compare(a,b)/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "compare(a,b)#entry",
+          "target": "compare(a,b)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "compare(a,b)#entry",
+      "exitCount": 4,
+      "id": "compare(a,b)",
+      "nodes": [
+        {
+          "id": "compare(a,b)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "compare(a,b)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a < b",
+          ],
+        },
+        {
+          "id": "compare(a,b)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1",
+          ],
+        },
+        {
+          "id": "compare(a,b)/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a > b",
+          ],
+        },
+        {
+          "id": "compare(a,b)/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 1",
+          ],
+        },
+        {
+          "id": "compare(a,b)/if@0/else/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a == b",
+          ],
+        },
+        {
+          "id": "compare(a,b)/if@0/else/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 0",
+          ],
+        },
+        {
+          "id": "compare(a,b)/if@0/else/if@0/else/if@0/else#return-b0",
+          "kind": "return",
+          "statements": [
+            "return None",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 04-while-loop.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "gcd(a,b)/while@0#b1",
+          "target": "gcd(a,b)/while@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "gcd(a,b)/while@0#cond-b0",
+          "target": "gcd(a,b)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "gcd(a,b)/while@0#cond-b0",
+          "target": "gcd(a,b)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "gcd(a,b)#entry",
+          "target": "gcd(a,b)/while@0#cond-b0",
+        },
+      ],
+      "entryId": "gcd(a,b)#entry",
+      "exitCount": 1,
+      "id": "gcd(a,b)",
+      "nodes": [
+        {
+          "id": "gcd(a,b)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "gcd(a,b)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "b != 0",
+          ],
+        },
+        {
+          "id": "gcd(a,b)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "a, b = b, a % b",
+          ],
+        },
+        {
+          "id": "gcd(a,b)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return a",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 05-for-range.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "foreach",
+          "source": "total(n)/foreach@0#b1",
+          "target": "total(n)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "total(n)/foreach@0#cond-b0",
+          "target": "total(n)/foreach@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "total(n)/foreach@0#cond-b0",
+          "target": "total(n)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "total(n)#b0",
+          "target": "total(n)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "total(n)#entry",
+          "target": "total(n)#b0",
+        },
+      ],
+      "entryId": "total(n)#entry",
+      "exitCount": 1,
+      "id": "total(n)",
+      "nodes": [
+        {
+          "id": "total(n)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "total(n)#b0",
+          "kind": "basic",
+          "statements": [
+            "acc = 0",
+          ],
+        },
+        {
+          "id": "total(n)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "i in range(n)",
+          ],
+        },
+        {
+          "id": "total(n)/foreach@0#b1",
+          "kind": "basic",
+          "statements": [
+            "acc = acc + i",
+          ],
+        },
+        {
+          "id": "total(n)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return acc",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 06-nested-loops.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "foreach",
+          "source": "bubble_sort(arr)/foreach@0/foreach@0/if@0/then#b0",
+          "target": "bubble_sort(arr)/foreach@0/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bubble_sort(arr)/foreach@0/foreach@0/if@0#cond-b0",
+          "target": "bubble_sort(arr)/foreach@0/foreach@0/if@0/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "bubble_sort(arr)/foreach@0/foreach@0/if@0#cond-b0",
+          "target": "bubble_sort(arr)/foreach@0/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bubble_sort(arr)/foreach@0/foreach@0#cond-b0",
+          "target": "bubble_sort(arr)/foreach@0/foreach@0/if@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "bubble_sort(arr)/foreach@0/foreach@0#cond-b0",
+          "target": "bubble_sort(arr)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bubble_sort(arr)/foreach@0#cond-b0",
+          "target": "bubble_sort(arr)/foreach@0/foreach@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "bubble_sort(arr)/foreach@0#cond-b0",
+          "target": "bubble_sort(arr)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "bubble_sort(arr)#b0",
+          "target": "bubble_sort(arr)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "bubble_sort(arr)#entry",
+          "target": "bubble_sort(arr)#b0",
+        },
+      ],
+      "entryId": "bubble_sort(arr)#entry",
+      "exitCount": 1,
+      "id": "bubble_sort(arr)",
+      "nodes": [
+        {
+          "id": "bubble_sort(arr)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "bubble_sort(arr)#b0",
+          "kind": "basic",
+          "statements": [
+            "n = len(arr)",
+          ],
+        },
+        {
+          "id": "bubble_sort(arr)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "i in range(n)",
+          ],
+        },
+        {
+          "id": "bubble_sort(arr)/foreach@0/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "j in range(n - i - 1)",
+          ],
+        },
+        {
+          "id": "bubble_sort(arr)/foreach@0/foreach@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[j] > arr[j + 1]",
+          ],
+        },
+        {
+          "id": "bubble_sort(arr)/foreach@0/foreach@0/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "arr[j], arr[j + 1] = arr[j + 1], arr[j]",
+          ],
+        },
+        {
+          "id": "bubble_sort(arr)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return arr",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 07-break-continue.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "continue",
+          "label": "continue",
+          "source": "first_even_after(xs,floor)/foreach@0/if@0/then#continue-b0",
+          "target": "first_even_after(xs,floor)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "first_even_after(xs,floor)/foreach@0/if@0#cond-b0",
+          "target": "first_even_after(xs,floor)/foreach@0/if@0/then#continue-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "first_even_after(xs,floor)/foreach@0/if@0#cond-b0",
+          "target": "first_even_after(xs,floor)/foreach@0/if@1#cond-b0",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "first_even_after(xs,floor)/foreach@0/if@1/then#break-b0",
+          "target": "first_even_after(xs,floor)#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "first_even_after(xs,floor)/foreach@0/if@1#cond-b0",
+          "target": "first_even_after(xs,floor)/foreach@0/if@1/then#break-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "first_even_after(xs,floor)/foreach@0/if@1#cond-b0",
+          "target": "first_even_after(xs,floor)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "first_even_after(xs,floor)/foreach@0#cond-b0",
+          "target": "first_even_after(xs,floor)/foreach@0/if@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "first_even_after(xs,floor)/foreach@0#cond-b0",
+          "target": "first_even_after(xs,floor)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "first_even_after(xs,floor)#entry",
+          "target": "first_even_after(xs,floor)/foreach@0#cond-b0",
+        },
+      ],
+      "entryId": "first_even_after(xs,floor)#entry",
+      "exitCount": 1,
+      "id": "first_even_after(xs,floor)",
+      "nodes": [
+        {
+          "id": "first_even_after(xs,floor)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "first_even_after(xs,floor)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "x in xs",
+          ],
+        },
+        {
+          "id": "first_even_after(xs,floor)/foreach@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x <= floor",
+          ],
+        },
+        {
+          "id": "first_even_after(xs,floor)/foreach@0/if@0/then#continue-b0",
+          "kind": "basic",
+          "statements": [
+            "continue",
+          ],
+        },
+        {
+          "id": "first_even_after(xs,floor)/foreach@0/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x % 2 == 0",
+          ],
+        },
+        {
+          "id": "first_even_after(xs,floor)/foreach@0/if@1/then#break-b0",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "first_even_after(xs,floor)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return x",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 08-for-else.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "find(xs,target)/foreach@0/if@0/then#break-b0",
+          "target": "find(xs,target)#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "find(xs,target)/foreach@0/if@0#cond-b0",
+          "target": "find(xs,target)/foreach@0/if@0/then#break-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "find(xs,target)/foreach@0/if@0#cond-b0",
+          "target": "find(xs,target)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "find(xs,target)/foreach@0#cond-b0",
+          "target": "find(xs,target)/foreach@0/if@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "find(xs,target)/foreach@0#cond-b0",
+          "target": "find(xs,target)/foreach@0/loop-else#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "find(xs,target)#entry",
+          "target": "find(xs,target)/foreach@0#cond-b0",
+        },
+      ],
+      "entryId": "find(xs,target)#entry",
+      "exitCount": 2,
+      "id": "find(xs,target)",
+      "nodes": [
+        {
+          "id": "find(xs,target)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "find(xs,target)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "i in range(len(xs))",
+          ],
+        },
+        {
+          "id": "find(xs,target)/foreach@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "xs[i] == target",
+          ],
+        },
+        {
+          "id": "find(xs,target)/foreach@0/if@0/then#break-b0",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "find(xs,target)/foreach@0/loop-else#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1",
+          ],
+        },
+        {
+          "id": "find(xs,target)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return i",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 09-multi-return.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bounds_check(arr,i)/if@0#cond-b0",
+          "target": "bounds_check(arr,i)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "bounds_check(arr,i)/if@0#cond-b0",
+          "target": "bounds_check(arr,i)/if@1#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bounds_check(arr,i)/if@1#cond-b0",
+          "target": "bounds_check(arr,i)/if@1/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "bounds_check(arr,i)/if@1#cond-b0",
+          "target": "bounds_check(arr,i)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "bounds_check(arr,i)#entry",
+          "target": "bounds_check(arr,i)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "bounds_check(arr,i)#entry",
+      "exitCount": 3,
+      "id": "bounds_check(arr,i)",
+      "nodes": [
+        {
+          "id": "bounds_check(arr,i)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "bounds_check(arr,i)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i < 0",
+          ],
+        },
+        {
+          "id": "bounds_check(arr,i)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return "negative"",
+          ],
+        },
+        {
+          "id": "bounds_check(arr,i)/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i >= len(arr)",
+          ],
+        },
+        {
+          "id": "bounds_check(arr,i)/if@1/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return "too large"",
+          ],
+        },
+        {
+          "id": "bounds_check(arr,i)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return arr[i]",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 10-try-finally.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": "finally",
+          "source": "read_count(path)/try@0/catch-0#return-b0",
+          "target": "read_count(path)/try@0#finally",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "read_count(path)/try@0/finally/if@0/then#b0",
+          "target": "read_count(path)#exit",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "read_count(path)/try@0/finally/if@0#cond-b0",
+          "target": "read_count(path)/try@0/finally/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "read_count(path)/try@0/finally/if@0#cond-b0",
+          "target": "read_count(path)#exit",
+        },
+        {
+          "kind": "exception",
+          "label": "exception",
+          "source": "read_count(path)/try@0#b0",
+          "target": "read_count(path)/try@0/catch-0#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "read_count(path)/try@0#b0",
+          "target": "read_count(path)/try@0#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "read_count(path)/try@0#finally",
+          "target": "read_count(path)/try@0/finally/if@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": "finally",
+          "source": "read_count(path)/try@0#return-b1",
+          "target": "read_count(path)/try@0#finally",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "read_count(path)#b0",
+          "target": "read_count(path)/try@0#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "read_count(path)#entry",
+          "target": "read_count(path)#b0",
+        },
+      ],
+      "entryId": "read_count(path)#entry",
+      "exitCount": 1,
+      "id": "read_count(path)",
+      "nodes": [
+        {
+          "id": "read_count(path)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "read_count(path)#b0",
+          "kind": "basic",
+          "statements": [
+            "handle = None",
+          ],
+        },
+        {
+          "id": "read_count(path)/try@0#b0",
+          "kind": "basic",
+          "statements": [
+            "handle = open(path)",
+          ],
+        },
+        {
+          "id": "read_count(path)/try@0#return-b1",
+          "kind": "return",
+          "statements": [
+            "return len(handle.read())",
+          ],
+        },
+        {
+          "id": "read_count(path)/try@0/catch-0#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 0",
+          ],
+        },
+        {
+          "id": "read_count(path)/try@0#finally",
+          "kind": "basic",
+          "statements": [
+            "finally:",
+          ],
+        },
+        {
+          "id": "read_count(path)/try@0/finally/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "handle",
+          ],
+        },
+        {
+          "id": "read_count(path)/try@0/finally/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "handle.close()",
+          ],
+        },
+        {
+          "id": "read_count(path)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 11-recursion.py 1`] = `
+{
+  "callEdges": [
+    {
+      "from": "fib(n)",
+      "to": "fib(n)",
+    },
+  ],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "fib(n)/if@0#cond-b0",
+          "target": "fib(n)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "fib(n)/if@0#cond-b0",
+          "target": "fib(n)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "fib(n)#entry",
+          "target": "fib(n)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "fib(n)#entry",
+      "exitCount": 2,
+      "id": "fib(n)",
+      "nodes": [
+        {
+          "id": "fib(n)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "fib(n)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "n < 2",
+          ],
+        },
+        {
+          "id": "fib(n)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return n",
+          ],
+        },
+        {
+          "id": "fib(n)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return fib(n - 1) + fib(n - 2)",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;
+
+exports[`python golden fixtures > matches the golden IR for 12-binary-search.py 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+          "target": "binary_search(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+          "target": "binary_search(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binary_search(arr,target)/while@0/if@0#cond-b0",
+          "target": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binary_search(arr,target)/while@0/if@0#cond-b0",
+          "target": "binary_search(arr,target)/while@0/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binary_search(arr,target)/while@0#b1",
+          "target": "binary_search(arr,target)/while@0/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binary_search(arr,target)/while@0#cond-b0",
+          "target": "binary_search(arr,target)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binary_search(arr,target)/while@0#cond-b0",
+          "target": "binary_search(arr,target)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binary_search(arr,target)#b0",
+          "target": "binary_search(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binary_search(arr,target)#entry",
+          "target": "binary_search(arr,target)#b0",
+        },
+      ],
+      "entryId": "binary_search(arr,target)#entry",
+      "exitCount": 2,
+      "id": "binary_search(arr,target)",
+      "nodes": [
+        {
+          "id": "binary_search(arr,target)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "binary_search(arr,target)#b0",
+          "kind": "basic",
+          "statements": [
+            "lo = 0",
+            "hi = len(arr) - 1",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "lo <= hi",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "mid = (lo + hi) // 2",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] == target",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return mid",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] < target",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "lo = mid + 1",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "hi = mid - 1",
+          ],
+        },
+        {
+          "id": "binary_search(arr,target)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return -1",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "python",
+}
+`;

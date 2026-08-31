@@ -258,8 +258,24 @@ describe('buildFunctionGraph — returns, throws, finally', () => {
     ]);
     const g = buildFunctionGraph(fn, 'f()', 'f', []);
     const ret = g.nodes.find((x) => x.kind === 'return')!;
+    const marker = g.nodes.find((x) => x.label === 'finally')!;
     const cleanup = byStmt(g, 'cleanup()');
-    expect(g.edges.some((e) => e.source === ret.id && e.target === cleanup.id)).toBe(true);
+    // return -> finally region marker -> the finally body
+    expect(g.edges.some((e) => e.source === ret.id && e.target === marker.id)).toBe(true);
+    expect(g.edges.some((e) => e.source === marker.id && e.target === cleanup.id)).toBe(true);
+  });
+
+  it('keeps control flow INSIDE finally rather than flattening it', () => {
+    // Collapsing the body into one node dropped handle.close() and mislabelled
+    // the node with the if's condition text.
+    const fn = n('func', 'f', [
+      n('try', 'try', [n('stmt', 'risky()')], {
+        finallyBody: [n('if', 'handle', [n('stmt', 'handle.close()')])],
+      }),
+    ]);
+    const g = buildFunctionGraph(fn, 'f()', 'f', []);
+    expect(g.nodes.some((x) => x.kind === 'branch' && x.label === 'handle')).toBe(true);
+    expect(g.nodes.some((x) => x.statements.includes('handle.close()'))).toBe(true);
   });
 
   it('walks one handler per except clause, and never emits an empty edge source', () => {

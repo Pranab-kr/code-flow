@@ -386,17 +386,30 @@ class GraphBuilder {
 
     if (finallyEntry) {
       const fb = stmt.meta!.finallyBody!;
+      // A region MARKER, then a real walk of the body.
+      //
+      // Collapsing the whole finally body into this one node would flatten any
+      // control flow inside it: `finally: if handle: handle.close()` would take
+      // the if's condition text as a statement and drop the close() call, so the
+      // diagram would show a node labelled `handle` and lose the cleanup.
+      // The marker keeps `finallyEntry` a stable target for return edges while the
+      // body gets its own subgraph.
       this.addNode({
         id: finallyEntry,
         kind: 'basic',
-        label: fb[0].text,
-        statements: fb.map((x) => x.text),
+        label: 'finally',
+        statements: ['finally:'],
         span: fb[0].span,
       });
+      // Pop BEFORE walking: a return inside finally is a real exit, not an edge
+      // back into the finally it is already running.
       this.finallies.pop();
       this.connect([...bodyOut, ...catchOuts], finallyEntry);
+      this.ids.enterRole('finally');
+      const finallyOut = this.walk(fb, [{ from: finallyEntry, kind: 'seq' }]);
       this.ids.exit();
-      return [{ from: finallyEntry, kind: 'seq' }];
+      this.ids.exit();
+      return finallyOut;
     }
 
     this.ids.exit();
