@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // We maintain AGENTS.md by hand (it points at CLAUDE.md as the canonical guide).
+  // Next regenerates its own on dev/build, which silently overwrites ours.
+  agentRules: false,
 };
 
 export default nextConfig;

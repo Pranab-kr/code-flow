@@ -1,0 +1,140 @@
+/* Every colour is a token. Node meaning comes from shape + label, so the
+ * diagram survives grayscale export and colourblind viewers. */
+
+.cf-node {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 100%;
+  height: 100%;
+  background: var(--color-node);
+  border: 1px solid var(--color-node-brdr);
+  border-radius: var(--radius-md);
+  padding: var(--space-2xs) var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink);
+  /* node-settle: one of three motion primitives */
+  transition:
+    transform var(--dur-mid) var(--ease-out),
+    opacity var(--dur-mid) var(--ease-out);
+}
+
+/* Decision nodes: a rotated square behind the text. Shape, not colour. */
+.cf-node[data-kind='branch'],
+.cf-node[data-kind='switch'] {
+  border-color: transparent;
+  background: transparent;
+}
+.cf-node__diamond {
+  position: absolute;
+  inset: 0;
+  background: var(--color-node);
+  border: 1px solid var(--color-node-brdr);
+  transform: rotate(45deg) scale(0.72);
+  border-radius: var(--radius-sm);
+  z-index: 0;
+}
+.cf-node__body {
+  position: relative;
+  z-index: 1;
+}
+
+/* Loops: a doubled left rule */
+.cf-node[data-kind='loop-header'] {
+  border-left: 3px double var(--color-accent);
+}
+
+/* Returns: a filled left cap. Throws: dashed. */
+.cf-node[data-kind='return'] {
+  border-left: 6px solid var(--color-accent);
+}
+.cf-node[data-kind='throw'] {
+  border-style: dashed;
+  border-color: var(--color-danger);
+}
+
+/* Entry and exit read as terminals */
+.cf-node[data-kind='entry'],
+.cf-node[data-kind='exit'] {
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-3);
+  text-align: center;
+}
+
+/* Unreachable code is shown, dimmed — never silently dropped */
+.cf-node[data-unreachable='true'] {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.cf-node[data-selected='true'] {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.cf-node__kind {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+.cf-node__warn {
+  color: var(--color-warn);
+}
+.cf-node__stmts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cf-node__stmts li {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cf-node__more {
+  color: var(--color-ink-3);
+}
+
+/* --- Edges ---------------------------------------------------------------
+ * v12 does NOT reflect edge.data to the DOM, so these hook onto className,
+ * which IS applied to the edge <g>. Labels carry the meaning; colour only
+ * reinforces it. */
+.react-flow__edge .react-flow__edge-path {
+  stroke: var(--color-edge);
+}
+.cf-edge-back .react-flow__edge-path {
+  stroke: var(--color-edge-back);
+  stroke-dasharray: 5 4;
+}
+.cf-edge-exception .react-flow__edge-path {
+  stroke: var(--color-danger);
+  stroke-dasharray: 2 3;
+}
+.cf-edge-break .react-flow__edge-path,
+.cf-edge-continue .react-flow__edge-path {
+  stroke-dasharray: 6 3;
+}
+.react-flow__edge-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--color-ink-2);
+}
+.react-flow__edge-textbg {
+  fill: var(--color-canvas);
+}
+
+.react-flow__controls-button {
+  background: var(--color-paper-2);
+  border-bottom: 1px solid var(--color-rule);
+  fill: var(--color-ink-2);
+}
+.react-flow__minimap {
+  background: var(--color-paper-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-node {
+    transition: opacity 150ms var(--ease-out);
+  }
+}

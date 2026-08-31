@@ -1,0 +1,58 @@
+.cf-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  height: 100%;
+  padding: var(--space-xl);
+}
+
+.cf-skeleton__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  width: min(280px, 60%);
+}
+
+/* skeleton crossfade: one of three motion primitives */
+.cf-skeleton__box {
+  height: 34px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+  animation: cf-skeleton-pulse 1600ms var(--ease-in-out) infinite;
+}
+
+.cf-skeleton__box--diamond {
+  width: 96px;
+  height: 96px;
+  transform: rotate(45deg) scale(0.7);
+  border-radius: var(--radius-sm);
+}
+
+.cf-skeleton__label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+}
+
+@keyframes cf-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-skeleton__box {
+    animation: none;
+    opacity: 0.6;
+  }
+}

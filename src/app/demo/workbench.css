@@ -1,0 +1,124 @@
+.wb {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.wb__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+.wb__brand {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.wb__tabs {
+  display: flex;
+  gap: var(--space-2xs);
+  overflow-x: auto;
+}
+
+.wb__tab {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--rule-hair) solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-2);
+  cursor: pointer;
+  white-space: nowrap; /* gate 49: never two-line clickable text */
+}
+.wb__tab:hover {
+  color: var(--color-ink);
+}
+.wb__tab[aria-selected='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-rule);
+}
+
+.wb__status {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+.wb__status[data-status='error'] {
+  color: var(--color-danger);
+}
+.wb__status[data-status='parsing'] {
+  color: var(--color-warn);
+}
+
+/* Canvas dominant: it is why someone opened the app */
+.wb__panes {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  flex: 1;
+  min-height: 0;
+}
+
+.wb__editor {
+  border-right: var(--rule-hair) solid var(--color-rule);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.wb__canvas {
+  position: relative;
+  background: var(--color-canvas);
+  min-width: 0;
+}
+
+.wb__notice {
+  padding: var(--space-lg);
+  margin: 0;
+  max-width: 42ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+
+.wb__mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .wb__panes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wb__panes[data-pane='code'] .wb__canvas {
+    display: none;
+  }
+  .wb__panes[data-pane='diagram'] .wb__editor {
+    display: none;
+  }
+  .wb__mobile-tabs {
+    display: flex;
+    border-top: var(--rule-hair) solid var(--color-rule);
+  }
+  .wb__mobile-tabs button {
+    flex: 1;
+    padding: var(--space-sm);
+    background: transparent;
+    border: 0;
+    color: var(--color-ink-2);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .wb__mobile-tabs button[aria-pressed='true'] {
+    color: var(--color-accent);
+  }
+}
