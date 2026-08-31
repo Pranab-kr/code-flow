@@ -1,6 +1,7 @@
-allowBuilds:
-  protobufjs: false
-  sharp: false
-  unrs-resolver: false
-minimumReleaseAgeExclude:
-  - '@codemirror/view@6.43.10'
+# `onlyBuiltDependencies` is the pnpm 10 spelling. pnpm 11+ renamed it to
+# `allowBuilds`, and pnpm 10 silently IGNORES that key — which would let these
+# postinstall scripts run on the build image instead of being skipped.
+# Empty list = run no build scripts at all. None of these three are needed:
+# protobufjs is codegen, sharp is image optimisation we do not use, and
+# unrs-resolver ships prebuilt binaries.
+onlyBuiltDependencies: []
