@@ -10,25 +10,50 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 
 | | |
 |---|---|
-| **Last updated** | 2026-08-31 (plan API-verified) |
+| **Last updated** | 2026-09-01 |
 | **Phase** | P1 (of 4) — foundation |
-| **Active plan** | `docs/superpowers/plans/2026-08-31-p1-vertical-slice.md` (Tasks 1–7) |
-| **Code written** | **None yet.** Design + plan only. |
-| **Plan status** | **API-verified 2026-08-31.** 6 blockers + 7 majors + 14 minors found and patched in. |
-| **Next action** | Execute Plan 1, Task 1 (scaffold + Hallmark tokens) |
+| **Active plan** | `docs/superpowers/plans/2026-08-31-p1-vertical-slice.md` — Tasks 1, 3–7 **done**; Task 2 blocked |
+| **Code written** | **Working end to end.** `pnpm dev` → `/demo` renders a real CFG from real Python. |
+| **Tests** | 101 passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Blocked on** | **Postgres.** No container runtime on this machine (`pacman` needs sudo). See "The one blocker" below. |
+| **Next action** | Unblock Postgres, then Plan 2 Task 0 → Task 1 (schema + RLS) |
 
 ---
 
-## Currently working on
+## What works right now
 
-**Nothing in flight.** The design and the first implementation plan are written and committed.
-No application code exists yet — `git ls-files` returns docs and config only.
+```bash
+pnpm install && pnpm grammars && pnpm dev
+# then open http://localhost:3000/demo
+```
+
+Paste or edit Python and the diagram re-derives as you type: parse → IR → ELK layout →
+React Flow, all in a worker. Clicking a node scrolls the editor to its line. The theme
+toggle cycles system → light → dark, and both drops pass every contrast gate.
+
+**Verified, not assumed:** `/demo` returns 200, both wasm files serve, and the page renders
+the editor with `binary_search`.
+
+## The one blocker
+
+**Task 2 (persistence) needs Postgres, and this machine has no container runtime.**
+`docker`, `podman`, `nerdctl`, and `colima` are all absent, and installing one needs
+`sudo pacman -S docker`, which an agent cannot run.
+
+Two ways forward, both written up in **Plan 2 Task 0**:
+
+1. **Local** — a human runs `sudo pacman -S docker && sudo systemctl enable --now docker`,
+   then `pnpm dlx supabase start`. Free, fast, disposable.
+2. **Hosted** — create a project at supabase.com/dashboard and paste three values into
+   `.env.local`. No local runtime needed. The org's project cost is $0/month.
+
+Everything downstream of the parse was built and proven without it, so this blocks only
+auth, persistence, and the reload-survives-a-drag test.
 
 ## Next up
 
-**Plan 1, Task 1: Scaffold, tokens, and both themes.**
-Open `docs/superpowers/plans/2026-08-31-p1-vertical-slice.md` and work Task 1 step by step.
-Every step is a checkbox; tick them as you go.
+**Plan 2, Task 0** (`docs/superpowers/plans/2026-09-01-p1-plan2-persistence.md`) — provision
+Postgres, then Task 1 for the schema and the nine RLS negative tests.
 
 Use `superpowers:subagent-driven-development` (a fresh subagent per task, reviewed between
 tasks) or `superpowers:executing-plans` (inline, batched with checkpoints).
@@ -39,16 +64,41 @@ tasks) or `superpowers:executing-plans` (inline, batched with checkpoints).
 
 | Task | Deliverable | State |
 |---|---|---|
-| 1 | Next.js scaffold, Hallmark Aurora tokens, both themes, `resolveTheme` | ☐ not started |
-| 2 | Supabase schema, RLS policies, **negative-path isolation tests** | ☐ not started |
-| 3 | IR types + structural node IDs (`IdBuilder`) | ☐ not started |
-| 4 | Language-agnostic CFG builder (the 7 hard constructs) | ☐ not started |
-| 5 | Python tree-sitter adapter + 12 golden fixtures | ☐ not started |
-| 6 | ELK layout + debounced parse worker | ☐ not started |
-| 7 | CodeMirror editor, React Flow canvas, project routes, E2E | ☐ not started |
+| 1 | Next 16 scaffold, Hallmark Aurora tokens, both themes, `resolveTheme` | ✅ `dace3c2` |
+| 2 | Supabase schema, RLS policies, **negative-path isolation tests** | ⛔ blocked — no Postgres; moved to Plan 2 |
+| 3 | IR types + structural node IDs (`IdBuilder`) | ✅ `ea54bfc` |
+| 4 | Language-agnostic CFG builder (the 7 hard constructs) | ✅ `02f4848` |
+| 5 | Python tree-sitter adapter + 12 golden fixtures | ✅ `58edc0d` |
+| 6 | ELK layout + debounced parse worker | ✅ `e2625f7` |
+| 7 | CodeMirror editor, React Flow canvas, working demo | ✅ `29e5bae` (routes + E2E deferred with Task 2) |
 
-**Plan 1 is done when:** a user signs up, creates a project, pastes Python, and sees a correct
-control-flow diagram whose nodes scroll the editor to the matching line.
+**Still owed from Task 7**, both waiting on Postgres: the `/projects` routes (the demo page
+stands in) and the full-slice Playwright test, whose load-bearing assertion is that a dragged
+position survives a reload.
+
+## Bugs found by reviewing output rather than trusting green tests
+
+Worth recording, because each would have shipped as a silent wrong answer:
+
+1. **Syntax errors went unreported.** tree-sitter parses `def f(:` into
+   `(parameters (MISSING ")"))` with **no ERROR node anywhere** — for a recoverable omission
+   it inserts a zero-width node with `isMissing` set. Checking only `type === 'ERROR'` missed
+   a whole class of real errors, so the canvas would have drawn a clean diagram of broken code.
+2. **`finally: if handle: handle.close()` dropped the close() call.** The whole finally body
+   was collapsed into one node, which took the `if`'s condition as its statement text. Found
+   by reading the golden snapshot, not by a failing assertion.
+3. **React Flow v12 does not reflect `edge.data` to the DOM.** The planned
+   `.react-flow__edge[data-kind="back"]` selector could never match, so back edges would have
+   rendered identically to forward ones — silently defeating the rule that meaning never
+   depends on colour alone. `edge.className` is the supported hook.
+4. **ELK reverses back edges unconditionally.** `cycleBreaking.strategy` only picks *which*
+   edges get reversed. Loop arrows would have pointed backwards; `layoutFunction` now
+   un-reverses against the IR source.
+5. **`vite` was unresolvable**, so `loadEnv` — the fix for RLS env loading — would have failed
+   silently. pnpm's hoisted symlink pointed at `vite@8.2.2/` while the real directory carries
+   a peer-dependency hash. Replaced with a `node:fs` reader.
+6. **Diamonds and plain blocks shared one min-width**, so a short condition rendered exactly
+   as wide as a short statement and the rotated square clipped its own text.
 
 ## Plan verification (2026-08-31)
 
@@ -120,16 +170,19 @@ not emit from `edge.data`. Re-run the sweep or verify by hand before starting Ta
 
 ## Roadmap beyond Plan 1
 
-Plans not yet written — each gets its own file, argued from the same spec, written *after* the
-previous slice lands so it is informed by real code.
+All five remaining plans are **written and committed**. Each states its own prerequisites and
+what "done" means, so an agent can pick one up without inferring the order.
 
-| Plan | Slice | Contents |
-|---|---|---|
-| 2 | 4–5 | Inngest durable pipeline, Realtime, `layout_overrides` write path + orphan GC |
-| 3 | 6 | C++ and Java adapters; cross-language isomorphism tests |
-| 4 | 7 | Export PNG / JPEG / SVG, light-background option |
-| 5 | 8 | BYOK vault (AES-256-GCM), provider registry, streaming AI chat |
-| 6 | 9 | Marketing + auth surface (full Hallmark page flow), a11y + 58-gate slop pass |
+| Plan | File | Contents | Blocked? |
+|---|---|---|---|
+| 2 | `2026-09-01-p1-plan2-persistence.md` | Schema, RLS + 9 negative tests, Inngest analyze job, layout overrides, Realtime | **Yes — Postgres** |
+| 3 | `2026-09-01-p1-plan3-cpp-java.md` | C++ and Java adapters, cross-language isomorphism | No — start any time |
+| 4 | `2026-09-01-p1-plan4-export.md` | PNG / JPEG / SVG from the IR, sticky notes | Needs Plan 2 for notes only |
+| 5 | `2026-09-01-p1-plan5-byok-chat.md` | AES-256-GCM vault, provider registry, streaming chat | Needs Plan 2 (auth) |
+| 6 | `2026-09-01-p1-plan6-marketing-a11y.md` | Marketing surface, graph outline view, a11y + 58 slop gates | Last on purpose |
+
+**Plan 3 is the one to do next if Postgres stays blocked** — it is pure IR work with no
+database dependency, and it is where the language picker stops lying about C++ and Java.
 
 Phases P2 (more languages), P3 (flow debug + sandboxed runner), P4 (AI diagram→code editing)
 each need their own **spec** before any plan. Do not start them from this spec.
