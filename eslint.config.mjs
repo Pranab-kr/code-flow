@@ -5,9 +5,36 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+
+  // src/lib/ir/** must stay PORTABLE: the same module runs in a browser web
+  // worker and in a Node job (Vitest today, Inngest later). One React import
+  // and it stops being the single source of truth for the graph.
+  {
+    files: ["src/lib/ir/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "react",
+                "react-*",
+                "next",
+                "next/*",
+                "@/components/*",
+                "@/app/*",
+              ],
+              message:
+                "src/lib/ir must stay portable: it runs in a browser worker AND in a Node job. No React/Next/DOM imports.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
