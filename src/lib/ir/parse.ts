@@ -34,7 +34,10 @@ export interface ParseOptions {
  */
 function ensureInit(baseUrl: string): Promise<void> {
   initPromise ??= IS_NODE
-    ? Parser.init()
+    ? // Node resolves web-tree-sitter.wasm next to its own module in
+      // node_modules, which IS bundled with a serverless function. A locateFile
+      // override here would point at a cwd-relative path that does not exist.
+      Parser.init()
     : Parser.init({ locateFile: (name: string) => `${baseUrl}/grammars/${name}` });
   return initPromise;
 }
@@ -42,10 +45,17 @@ function ensureInit(baseUrl: string): Promise<void> {
 async function loadGrammar(language: Language, baseUrl: string): Promise<TSLanguage> {
   const cached = grammarCache.get(language);
   if (cached) return cached;
-  const url = LANGUAGES[language].grammarUrl;
   // Language.load branches internally: Node fs-reads a bare path, the browser
   // fetches a same-origin URL.
-  const grammar = await TSLanguage.load(url.startsWith('/') ? `${baseUrl}${url}` : url);
+  //
+  // In Node the path is cwd-relative ('public/grammars/...'), which only works
+  // because next.config.ts traces public/grammars into the serverless bundle --
+  // Vercel uploads public/ to the CDN and does NOT otherwise put it on the
+  // function's filesystem. See outputFileTracingIncludes there.
+  //
+  // Deliberately not require.resolve(): the bundler cannot analyse a dynamic
+  // specifier, and it analyses this module for the browser worker as well.
+  const grammar = await TSLanguage.load(`${baseUrl}${LANGUAGES[language].grammarUrl}`);
   grammarCache.set(language, grammar);
   return grammar;
 }

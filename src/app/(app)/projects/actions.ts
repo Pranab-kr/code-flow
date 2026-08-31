@@ -137,9 +137,11 @@ export async function createProject(formData: FormData): Promise<{ error?: strin
  * grounding now and execution traces in P3 — so it derives its own.
  */
 export async function saveSource(
+  // Order matters: .bind() fills arguments left to right, so the two values the
+  // server pins must come FIRST, leaving the client a one-arg function.
   projectId: string,
-  source: string,
   language: string,
+  source: string,
 ): Promise<{ ok?: true; error?: string }> {
   if (source.length > MAX_SOURCE_BYTES) {
     return { error: `That is over the ${MAX_SOURCE_BYTES / 1000}KB limit for one snapshot.` };

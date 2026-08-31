@@ -43,11 +43,15 @@ export default async function ProjectPage({
 
   // Bind the ids server-side: the client should not be able to choose which
   // project it writes to, even though RLS would also stop it.
+  //
+  // .bind() on a server action, NOT an inline arrow. A closure defined here
+  // cannot cross the server/client boundary -- React can only serialize a
+  // reference to a "use server" function, so wrapping one in
+  // `(s) => save(s, language)` throws at render and 500s the whole page.
+  // Both the project id and the language are bound, leaving the client a
+  // one-argument function that takes only the source.
   const language = project.language as Language;
-  const save = saveSource.bind(null, project.id) as (
-    source: string,
-    language: string,
-  ) => Promise<{ ok?: true; error?: string }>;
+  const save = saveSource.bind(null, project.id, language);
   const moveNode = saveOverride.bind(null, project.id);
 
   return (
@@ -55,7 +59,7 @@ export default async function ProjectPage({
       projectId={project.id}
       title={project.title}
       language={language}
-      onSave={(source: string) => save(source, language)}
+      onSave={save}
       onNodeMoved={moveNode}
       initialSource={snapshot?.source ?? ''}
       initialOverrides={Object.fromEntries(
