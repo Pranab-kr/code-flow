@@ -6,6 +6,10 @@ import { createServerClient } from '@/lib/supabase/server';
 
 export interface AuthResult {
   error?: string;
+  /** A non-failure outcome that still needs the user to act. Rendered as a
+   *  notice, NOT as an error: "your account exists, go confirm it" is good news
+   *  wearing a red box otherwise. */
+  notice?: string;
 }
 
 /**
@@ -66,10 +70,13 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   const { data, error } = await supabase.auth.signUp(creds);
   if (error) return { error: friendly(error.message) };
 
-  // With email confirmation on, signUp returns no session. Say so rather than
-  // redirecting to a page that will bounce them straight back here.
+  // With email confirmation on, signUp returns no session, so redirecting would
+  // bounce straight back here. This is a SUCCESS: the account was created.
   if (!data.session) {
-    return { error: 'Check your email to confirm your account, then sign in.' };
+    return {
+      notice:
+        'Account created. Check your email for a confirmation link, then sign in.',
+    };
   }
 
   revalidatePath('/', 'layout');

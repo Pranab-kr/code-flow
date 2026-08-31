@@ -35,14 +35,18 @@ const COPY = {
 export function AuthForm({ mode, action, next }: Props) {
   const copy = COPY[mode];
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function onSubmit(formData: FormData) {
     setError(null);
+    setNotice(null);
     startTransition(async () => {
-      // A successful action redirects, so control only returns here on failure.
+      // A redirect means success. Control returns here for a failure OR for a
+      // success that still needs the user to do something (confirm an email).
       const result = await action(formData);
       if (result?.error) setError(result.error);
+      else if (result?.notice) setNotice(result.notice);
     });
   }
 
@@ -93,6 +97,13 @@ export function AuthForm({ mode, action, next }: Props) {
           // tabIndex + role=alert so a screen reader announces it and focus can land here
           <p className="auth__error" id="auth-error" role="alert" tabIndex={-1}>
             {error}
+          </p>
+        )}
+
+        {notice && (
+          // role=status, not alert: this is an outcome to read, not a problem.
+          <p className="auth__notice" role="status" tabIndex={-1}>
+            {notice}
           </p>
         )}
 

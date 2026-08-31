@@ -83,6 +83,21 @@
   outline-offset: 2px;
 }
 
+.auth__notice {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-left: 3px solid var(--color-ok);
+  background: var(--color-paper-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+.auth__notice:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .auth__submit {
   margin-top: var(--space-lg);
   padding: var(--space-xs) var(--space-md);
@@ -133,7 +148,22 @@
 
 @media (prefers-reduced-motion: reduce) {
   .auth__input,
-  .auth__submit {
+  .auth__notice {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-left: 3px solid var(--color-ok);
+  background: var(--color-paper-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+.auth__notice:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.auth__submit {
     transition: opacity 150ms var(--ease-out);
   }
   .auth__submit:active:not(:disabled) {
