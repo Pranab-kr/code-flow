@@ -197,6 +197,7 @@ what "done" means, so an agent can pick one up without inferring the order.
 | 4 | `2026-09-01-p1-plan4-export.md` | PNG / JPEG / SVG from the IR, sticky notes | Needs Plan 2 for notes only |
 | 5 | `2026-09-01-p1-plan5-byok-chat.md` | AES-256-GCM vault, provider registry, streaming chat | Needs Plan 2 (auth) |
 | 6 | `2026-09-01-p1-plan6-marketing-a11y.md` | Marketing surface, graph outline view, a11y + 58 slop gates | Last on purpose |
+| 7 | `2026-09-01-p1-plan7-design-system.md` | **Design authority.** Token contract, node shape language, macrostructure pick, 21st.dev sourcing rules, 58-gate sweep | No — Task 1 fixes shipped violations |
 
 **Plan 3 is the one to do next if Postgres stays blocked** — it is pure IR work with no
 database dependency, and it is where the language picker stops lying about C++ and Java.

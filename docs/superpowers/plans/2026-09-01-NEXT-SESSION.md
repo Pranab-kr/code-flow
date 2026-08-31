@@ -76,6 +76,11 @@ the adapter that normalizes less rather than the comparison.
   Vercel; add it there when starting this. Storage design is settled: server-side encrypted,
   keys never reach the browser. Do not revisit that without reading spec §9.
 - **Plan 6** marketing + a11y. Last on purpose: the hero embeds the real canvas.
+  **Read Plan 7 first** — it is the design authority Plan 6 consumes.
+- **Plan 7** design system + anti-slop pass. **Task 1 fixes violations already shipped**
+  (two neutrals below the gate-22 chroma floor; `☀`/`⚠` render as colour emoji on some
+  platforms, tripping gate 30 and breaking grayscale export). Do Task 1 whenever you next
+  touch UI, regardless of which plan you are on.
 - **Owed from Plan 1 Task 7:** the full-slice Playwright test. Its key assertion (a dragged
   position survives a reload) is covered by `tests/overrides.test.ts` against the real
   database, but not yet through a browser.
