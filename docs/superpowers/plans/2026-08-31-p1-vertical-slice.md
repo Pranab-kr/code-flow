@@ -4,9 +4,9 @@
 
 **Goal:** A working vertical slice — a user signs up, creates a project, pastes Python, and sees a correct control-flow diagram they can click through.
 
-**Architecture:** Next.js 15 app router with Supabase for auth and RLS-protected persistence. A portable IR module (`src/lib/ir/`, zero React/Next imports) parses source via `web-tree-sitter` into a normalized `ProgramIR` of basic blocks, runs in a web worker, and is laid out by `elkjs` for rendering in React Flow. The diagram is a derived view — code is the only source of truth.
+**Architecture:** Next.js 16 app router with Supabase for auth and RLS-protected persistence. A portable IR module (`src/lib/ir/`, zero React/Next imports) parses source via `web-tree-sitter` into a normalized `ProgramIR` of basic blocks, runs in a web worker, and is laid out by `elkjs` for rendering in React Flow. The diagram is a derived view — code is the only source of truth.
 
-**Tech Stack:** Next.js 15, TypeScript (strict), Supabase (Postgres/Auth/RLS), CodeMirror 6, `@xyflow/react`, `elkjs`, `web-tree-sitter`, Tailwind v4, Vitest, Playwright.
+**Tech Stack:** Next.js 16, TypeScript (strict), Supabase (Postgres/Auth/RLS), CodeMirror 6, `@xyflow/react`, `elkjs`, `web-tree-sitter`, Tailwind v4, Vitest, Playwright.
 
 **Spec:** `docs/superpowers/specs/2026-08-31-code-flow-p1-design.md`
 
@@ -61,11 +61,40 @@
 
 - [ ] **Step 1: Initialize the project**
 
+`create-next-app` **refuses to run in a non-empty directory**, and this repo already has
+`docs/`, `.claude/`, `PROGRESS.md`, `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `.gitignore`.
+Verified behaviour: it prints "contains files that could conflict", writes nothing, and
+**exits 0** — so a script that only checks the exit code will think it succeeded.
+
+Scaffold into a temp directory and move the result in:
+
 ```bash
-pnpm dlx create-next-app@latest . --typescript --tailwind --eslint --app \
-  --src-dir --import-alias "@/*" --use-pnpm --no-turbopack --yes
-pnpm add -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom
+cd /tmp && rm -rf cf-scaffold
+pnpm dlx create-next-app@latest cf-scaffold \
+  --typescript --tailwind --eslint --app --src-dir \
+  --import-alias "@/*" --use-pnpm --skip-install --yes
+cd /home/pranab/proj/codeflow
+
+# Move everything except the files we already own. Note the excludes:
+#   AGENTS.md  — create-next-app writes its own (--agents-md is a DEFAULT in v16)
+#   .gitignore — merge by hand; ours already covers .env.local and settings.local.json
+rsync -a --exclude 'AGENTS.md' --exclude '.gitignore' --exclude '.git' \
+  /tmp/cf-scaffold/ ./
+# Fold in Next's gitignore additions without losing our secret rules:
+cat /tmp/cf-scaffold/.gitignore >> .gitignore
+sort -u -o .gitignore .gitignore
+rm -rf /tmp/cf-scaffold
+
+pnpm add geist
+pnpm add -D vitest @vitejs/plugin-react jsdom \
+  @testing-library/react @testing-library/jest-dom
+pnpm install
 ```
+
+Notes on flags that changed: **`--no-turbopack` no longer exists** — Turbopack is the default
+bundler in Next 16, and passing a removed flag is an error. `--yes` accepts the remaining
+defaults. `geist` is the font package the token block's `--font-display` / `--font-mono`
+reference; without it those names fall through to the system stack and the design is wrong.
 
 - [ ] **Step 2: Configure Vitest**
 
@@ -74,17 +103,40 @@ Create `vitest.config.ts`:
 ```ts
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { loadEnv } from 'vite';          // from 'vite', NOT 'vitest/config'
 import path from 'node:path';
 
-export default defineConfig({
-  plugins: [react()],
+const alias = { '@': path.resolve(import.meta.dirname, './src') };
+
+// Two projects, deliberately:
+//  - a CLI path arg FILTERS `include`, it never widens it, so tests/ needs its own project
+//    or `pnpm vitest run tests/rls.test.ts` prints "No test files found" and exits 1.
+//  - Vitest does not read .env.local into process.env, so the RLS test needs loadEnv.
+export default defineConfig(({ mode }) => ({
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    projects: [
+      {
+        plugins: [react()],
+        resolve: { alias },
+        test: {
+          name: 'unit',
+          environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ts'],
+          include: ['src/**/*.test.{ts,tsx}'],
+        },
+      },
+      {
+        resolve: { alias },
+        test: {
+          name: 'rls',
+          environment: 'node',
+          include: ['tests/*.test.ts'],
+          env: loadEnv(mode, process.cwd(), ''),   // '' is required or only VITE_* load
+        },
+      },
+    ],
   },
-  resolve: { alias: { '@': path.resolve(__dirname, './src') } },
-});
+}));
 ```
 
 Create `vitest.setup.ts`:
@@ -93,7 +145,17 @@ Create `vitest.setup.ts`:
 import '@testing-library/jest-dom/vitest';
 ```
 
-Add to `package.json` scripts: `"test": "vitest run"`, `"test:watch": "vitest"`.
+Add to `package.json` scripts — `test` is scoped to `unit` so `pnpm test` never requires
+live Supabase credentials:
+
+```json
+"test":       "vitest run --project unit",
+"test:watch": "vitest --project unit",
+"test:rls":   "vitest run --project rls"
+```
+
+`pnpm vitest run tests/rls.test.ts` then works, because the path filter lands inside the
+`rls` project.
 
 - [ ] **Step 3: Write the failing theme test**
 
@@ -156,6 +218,16 @@ Create `src/styles/tokens.css`. Per Spec §10: light palette on bare `:root`, da
  * tone: technical/atmospheric · anchor hue: cool cyan ~200
  * drops: Night (default, blooms allowed) · Day (light, blooms dropped)
  * axes: paper-band=dark · display-style=grotesk-sans · accent-hue=cool
+ *
+ * CONTRAST-VERIFIED 2026-08-31 (OKLCH -> sRGB -> WCAG relative luminance).
+ * All 27 text/non-text pairs pass in BOTH drops. Verified pairs include every
+ * ink/accent on every paper tier and on --color-node, accent-ink on accent fill,
+ * focus on every surface, node-brdr on canvas AND node (3:1 — node shape carries
+ * meaning per spec §10, so an invisible border is an a11y defect), edges on canvas,
+ * and danger/warn/ok on paper.
+ * --color-rule is a DECORATIVE divider (1.71:1 day / 1.94:1 night) and is exempt
+ * from WCAG 1.4.11 — do not "fix" it to 3:1; that reads as heavy-handed.
+ * If you change any L value, re-run the contrast check before committing.
  */
 
 :root {
@@ -165,21 +237,21 @@ Create `src/styles/tokens.css`. Per Spec §10: light palette on bare `:root`, da
   --color-paper-3:    oklch(90% 0.010 200);
   --color-ink:        oklch(22% 0.015 200);
   --color-ink-2:      oklch(42% 0.012 200);
-  --color-ink-3:      oklch(58% 0.010 200);
-  --color-accent:     oklch(52% 0.135 200);
+  --color-ink-3:      oklch(49% 0.010 200);
+  --color-accent:     oklch(49% 0.135 200);
   --color-accent-ink: oklch(99% 0.002 200);
-  --color-rule:       oklch(86% 0.008 200);
-  --color-focus:      oklch(52% 0.150 200);
-  --color-danger:     oklch(52% 0.170 25);
-  --color-warn:       oklch(60% 0.130 70);
-  --color-ok:         oklch(52% 0.120 150);
+  --color-rule:       oklch(80% 0.008 200);
+  --color-focus:      oklch(55% 0.150 200);
+  --color-danger:     oklch(56% 0.170 25);
+  --color-warn:       oklch(55% 0.130 70);
+  --color-ok:         oklch(53% 0.120 150);
 
   /* Diagram-specific surfaces */
   --color-canvas:     oklch(95% 0.005 200);
   --color-node:       oklch(99% 0.002 200);
-  --color-node-brdr:  oklch(82% 0.010 200);
-  --color-edge:       oklch(60% 0.012 200);
-  --color-edge-back:  oklch(58% 0.100 300);
+  --color-node-brdr:  oklch(62% 0.010 200);
+  --color-edge:       oklch(62% 0.012 200);
+  --color-edge-back:  oklch(63% 0.100 300);
 
   /* Type */
   --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -217,10 +289,10 @@ Create `src/styles/tokens.css`. Per Spec §10: light palette on bare `:root`, da
     --color-paper-3:    oklch(26% 0.022 240);
     --color-ink:        oklch(95% 0.006 200);
     --color-ink-2:      oklch(78% 0.008 200);
-    --color-ink-3:      oklch(62% 0.010 200);
+    --color-ink-3:      oklch(64% 0.010 200);
     --color-accent:     oklch(74% 0.135 200);
     --color-accent-ink: oklch(16% 0.018 240);
-    --color-rule:       oklch(30% 0.016 240);
+    --color-rule:       oklch(38% 0.016 240);
     --color-focus:      oklch(78% 0.140 200);
     --color-danger:     oklch(70% 0.150 25);
     --color-warn:       oklch(78% 0.120 70);
@@ -228,8 +300,8 @@ Create `src/styles/tokens.css`. Per Spec §10: light palette on bare `:root`, da
 
     --color-canvas:     oklch(13% 0.016 240);
     --color-node:       oklch(20% 0.020 240);
-    --color-node-brdr:  oklch(32% 0.018 240);
-    --color-edge:       oklch(52% 0.014 220);
+    --color-node-brdr:  oklch(50% 0.018 240);
+    --color-edge:       oklch(55% 0.014 220);
     --color-edge-back:  oklch(66% 0.110 300);
 
     /* Atmospheric allows up to two fixed radial blooms, never animated */
@@ -244,18 +316,18 @@ Create `src/styles/tokens.css`. Per Spec §10: light palette on bare `:root`, da
   --color-paper-3:    oklch(26% 0.022 240);
   --color-ink:        oklch(95% 0.006 200);
   --color-ink-2:      oklch(78% 0.008 200);
-  --color-ink-3:      oklch(62% 0.010 200);
+  --color-ink-3:      oklch(64% 0.010 200);
   --color-accent:     oklch(74% 0.135 200);
   --color-accent-ink: oklch(16% 0.018 240);
-  --color-rule:       oklch(30% 0.016 240);
+  --color-rule:       oklch(38% 0.016 240);
   --color-focus:      oklch(78% 0.140 200);
   --color-danger:     oklch(70% 0.150 25);
   --color-warn:       oklch(78% 0.120 70);
   --color-ok:         oklch(74% 0.110 150);
   --color-canvas:     oklch(13% 0.016 240);
   --color-node:       oklch(20% 0.020 240);
-  --color-node-brdr:  oklch(32% 0.018 240);
-  --color-edge:       oklch(52% 0.014 220);
+  --color-node-brdr:  oklch(50% 0.018 240);
+  --color-edge:       oklch(55% 0.014 220);
   --color-edge-back:  oklch(66% 0.110 300);
   --bloom-1: oklch(40% 0.090 200 / 0.28);
   --bloom-2: oklch(38% 0.070 300 / 0.20);
@@ -332,7 +404,33 @@ export function ThemeScript() {
 }
 ```
 
-Wire it into `src/app/layout.tsx` inside `<head>`, and import `globals.css`.
+Wire it into `src/app/layout.tsx` inside `<head>`, import `globals.css`, and load the fonts
+so `--font-display` / `--font-mono` resolve to real faces:
+
+```tsx
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
+import '@/styles/globals.css';
+import { ThemeScript } from '@/components/ThemeScript';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <head><ThemeScript /></head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+Then point the tokens at the CSS variables the package defines, replacing the bare
+family names in `tokens.css`:
+
+```css
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-body:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+```
 
 - [ ] **Step 10: Verify both themes render**
 
@@ -1036,10 +1134,8 @@ describe('buildFunctionGraph — straight line', () => {
 describe('buildFunctionGraph — branches', () => {
   it('emits a branch node with true and false edges', () => {
     const fn = n('func', 'f', [
-      n('if', 'x > 0', [
-        n('stmt', 'a = 1'),          // then arm  (child 0)
-        n('stmt', 'a = 2'),          // else arm  (child 1)
-      ], { hasElse: true }),
+      // children = then arm ONLY; the else arm travels in meta.elseBody
+      n('if', 'x > 0', [n('stmt', 'a = 1')], { elseBody: [n('stmt', 'a = 2')] }),
     ]);
     const g = buildFunctionGraph(fn, 'f()', 'f', []);
     const branch = g.nodes.find((x) => x.kind === 'branch')!;
@@ -1048,9 +1144,23 @@ describe('buildFunctionGraph — branches', () => {
     expect(via(g, branch.id, 'false').statements).toEqual(['a = 2']);
   });
 
+  it('keeps a MULTI-statement else arm intact', () => {
+    // Regression guard: an earlier design sliced then/else out of one `children` array,
+    // which silently moved the extra else statements into the THEN arm.
+    const fn = n('func', 'f', [
+      n('if', 'x > 0', [n('stmt', 'a = 1')], {
+        elseBody: [n('stmt', 'b = 1'), n('stmt', 'b = 2'), n('stmt', 'b = 3')],
+      }),
+    ]);
+    const g = buildFunctionGraph(fn, 'f()', 'f', []);
+    const branch = g.nodes.find((x) => x.kind === 'branch')!;
+    expect(via(g, branch.id, 'true').statements).toEqual(['a = 1']);
+    expect(via(g, branch.id, 'false').statements).toEqual(['b = 1', 'b = 2', 'b = 3']);
+  });
+
   it('an if with no else still emits a false edge (to the join)', () => {
     const fn = n('func', 'f', [
-      n('if', 'x > 0', [n('stmt', 'a = 1')], { hasElse: false }),
+      n('if', 'x > 0', [n('stmt', 'a = 1')]),      // no else arm
       n('stmt', 'after = 1'),
     ]);
     const g = buildFunctionGraph(fn, 'f()', 'f', []);
@@ -1075,7 +1185,7 @@ describe('buildFunctionGraph — loops', () => {
   it('break exits the loop; continue returns to the header', () => {
     const fn = n('func', 'f', [
       n('loop', 'true', [
-        n('if', 'done', [n('break', 'break')], { hasElse: false }),
+        n('if', 'done', [n('break', 'break')]),
         n('continue', 'continue'),
       ], { loopKind: 'while' }),
       n('stmt', 'after = 1'),
@@ -1098,6 +1208,10 @@ describe('buildFunctionGraph — loops', () => {
     // entry flows into the body first, not the header
     expect(g.edges.some((e) => e.source === g.entryId && e.target === body.id)).toBe(true);
     expect(g.edges.some((e) => e.source === body.id && e.target === header.id)).toBe(true);
+    // EXACTLY one back edge, header -> body. An earlier version searched all nodes for the
+    // body and found the function ENTRY, emitting a bogus header -> entry edge.
+    expect(g.edges.filter((e) => e.kind === 'back'))
+      .toEqual([expect.objectContaining({ source: header.id, target: body.id })]);
   });
 
   it('python for/while ELSE runs on exhaustion, not on break', () => {
@@ -1128,6 +1242,32 @@ describe('buildFunctionGraph — switch fallthrough (spec sec.5.1)', () => {
     expect(g.edges.some((e) => e.source === caseOne.id && e.target === caseTwo.id)).toBe(true);
     expect(g.nodes.some((x) => x.kind === 'switch')).toBe(true);
   });
+
+  it('emits exactly ONE default edge when a default arm exists', () => {
+    const fn = n('func', 'f', [
+      n('switch', 'v', [
+        n('case', '1', [n('stmt', 'a = 1'), n('break', 'break')], { caseValue: '1' }),
+        n('case', 'default', [n('stmt', 'd = 1')], { isDefault: true }),
+      ]),
+    ]);
+    const g = buildFunctionGraph(fn, 'f()', 'f', []);
+    // No phantom "no match" bypass edge on top of the real default arm.
+    expect(g.edges.filter((e) => e.kind === 'default')).toHaveLength(1);
+  });
+
+  it('a continue inside a case targets the enclosing LOOP, not the switch', () => {
+    const fn = n('func', 'f', [
+      n('loop', 'more', [
+        n('switch', 'v', [
+          n('case', '1', [n('continue', 'continue')], { caseValue: '1' }),
+        ]),
+      ], { loopKind: 'while' }),
+    ]);
+    const g = buildFunctionGraph(fn, 'f()', 'f', []);
+    const header = g.nodes.find((x) => x.kind === 'loop-header')!;
+    const cont = g.edges.find((e) => e.kind === 'continue')!;
+    expect(cont.target).toBe(header.id);   // NOT the switch discriminant
+  });
 });
 
 describe('buildFunctionGraph — labeled break (spec sec.5.3)', () => {
@@ -1150,7 +1290,7 @@ describe('buildFunctionGraph — labeled break (spec sec.5.3)', () => {
 describe('buildFunctionGraph — returns and finally', () => {
   it('collects multiple returns into exitIds', () => {
     const fn = n('func', 'f', [
-      n('if', 'x', [n('return', 'return 1'), n('return', 'return 2')], { hasElse: true }),
+      n('if', 'x', [n('return', 'return 1')], { elseBody: [n('return', 'return 2')] }),
     ]);
     const g = buildFunctionGraph(fn, 'f()', 'f', []);
     expect(g.nodes.filter((x) => x.kind === 'return')).toHaveLength(2);
@@ -1166,12 +1306,27 @@ describe('buildFunctionGraph — returns and finally', () => {
     const cleanup = g.nodes.find((x) => x.statements[0] === 'cleanup()')!;
     expect(g.edges.some((e) => e.source === ret.id && e.target === cleanup.id)).toBe(true);
   });
+
+  it('walks one handler per except clause, and never emits an empty edge source', () => {
+    const fn = n('func', 'f', [
+      n('try', 'try', [n('stmt', 'risky()')], {
+        catchBodies: [
+          [n('stmt', 'h1a = 1'), n('stmt', 'h1b = 2')],   // handler 1, two statements
+          [n('stmt', 'h2a = 1'), n('stmt', 'h2b = 2')],   // handler 2, two statements
+        ],
+      }),
+    ]);
+    const g = buildFunctionGraph(fn, 'f()', 'f', []);
+    // two handlers -> two exception edges (not one per statement)
+    expect(g.edges.filter((e) => e.kind === 'exception')).toHaveLength(2);
+    expect(g.edges.every((e) => e.source !== '' && e.target !== '')).toBe(true);
+  });
 });
 
 describe('buildFunctionGraph — determinism', () => {
   it('produces identical output for identical input', () => {
     const make = () => n('func', 'f', [
-      n('loop', 'c', [n('if', 'd', [n('stmt', 's')], { hasElse: false })], { loopKind: 'while' }),
+      n('loop', 'c', [n('if', 'd', [n('stmt', 's')])], { loopKind: 'while' }),
     ]);
     const a = buildFunctionGraph(make(), 'f()', 'f', []);
     const b = buildFunctionGraph(make(), 'f()', 'f', []);
@@ -1206,15 +1361,21 @@ export interface SynNode {
   children: SynNode[];
   span: Span;
   meta?: {
-    hasElse?: boolean;
     loopKind?: LoopKind;
     label?: string;          // loop label, or the target of a labeled break
     caseValue?: string;
-    elseBody?: SynNode[];    // python for/while else
+    isDefault?: boolean;     // switch/match default arm — never infer from a missing caseValue
+    /** `if`: the else arm. `loop`: python for/while else. `children` is ONLY the then arm. */
+    elseBody?: SynNode[];
     finallyBody?: SynNode[];
-    catchBodies?: SynNode[];
+    /** One array PER handler. Flattening loses handler boundaries. */
+    catchBodies?: SynNode[][];
     unsupported?: string;
   };
+
+// There is deliberately no `hasElse` flag: an else arm is present exactly when
+// `meta.elseBody` is non-empty. A boolean plus a slice of `children` was the earlier
+// design and it mis-split any else arm with more than one statement.
 }
 
 export interface SynFunction {
@@ -1228,6 +1389,8 @@ export interface SynFunction {
 interface Pending { from: string; kind: IREdge['kind']; label?: string }
 
 interface LoopCtx {
+  /** 'switch' accepts `break` but must never capture `continue`. */
+  ctxKind: 'loop' | 'switch';
   headerId: string;
   label?: string;
   /** edges waiting for the node that follows the loop */
@@ -1283,13 +1446,29 @@ class GraphBuilder {
   /**
    * Walk a statement list, folding consecutive plain statements into blocks
    * and delegating control structures. Returns pending exits of the list.
+   *
+   * Statements after a `return`/`break`/`continue` are UNREACHABLE. They are still
+   * emitted, tagged `meta.unsupported: 'unreachable'`, with no incoming edge — so the
+   * canvas can render them dimmed and the learner sees their dead code instead of
+   * watching a line they can see in the editor silently vanish from the diagram
+   * (spec sec.11, "degrade, never blank"). `pending` is empty at that point, which is
+   * precisely what makes the block edgeless.
    */
   walk(list: SynNode[], incoming: Pending[], role?: string): Pending[] {
     let pending = incoming;
     let run: SynNode[] = [];
+    /** true once control cannot reach the following statements */
+    let unreachable = false;
 
     const flush = () => {
-      if (run.length) { pending = this.emitBlock(run, pending, role); run = []; }
+      if (!run.length) return;
+      const before = this.nodes.length;
+      pending = this.emitBlock(run, pending, role);
+      if (unreachable) {
+        const emitted = this.nodes[before];
+        if (emitted) emitted.meta = { ...emitted.meta, unsupported: 'unreachable' };
+      }
+      run = [];
     };
 
     for (const stmt of list) {
@@ -1299,6 +1478,8 @@ class GraphBuilder {
       }
       flush();
       pending = this.control(stmt, pending, role);
+      // return / throw / break / continue all return [] — nothing downstream is reachable
+      if (pending.length === 0) unreachable = true;
     }
     flush();
     return pending;
@@ -1319,20 +1500,17 @@ class GraphBuilder {
   }
 
   private ifStmt(stmt: SynNode, incoming: Pending[]): Pending[] {
-    const path = this.ids.enter('if');
-    void path;
+    this.ids.enter('if');
     const branch = this.addNode({
       id: this.ids.block('cond'), kind: 'branch',
       label: stmt.text, statements: [stmt.text], span: stmt.span,
     });
     this.connect(incoming, branch.id);
 
-    const hasElse = stmt.meta?.hasElse === true;
-    const thenBody = hasElse ? stmt.children.slice(0, -1) : stmt.children;
-    const elseBody = hasElse ? stmt.children.slice(-1) : [];
-
-    const thenOut = this.walk(thenBody, [{ from: branch.id, kind: 'true', label: 'true' }], 'then');
-    const elseOut = hasElse
+    // `children` is the then arm; the else arm arrives separately. Never slice them apart.
+    const elseBody = stmt.meta?.elseBody ?? [];
+    const thenOut = this.walk(stmt.children, [{ from: branch.id, kind: 'true', label: 'true' }], 'then');
+    const elseOut = elseBody.length
       ? this.walk(elseBody, [{ from: branch.id, kind: 'false', label: 'false' }], 'else')
       : [{ from: branch.id, kind: 'false' as const, label: 'false' }];
 
@@ -1342,7 +1520,9 @@ class GraphBuilder {
 
   private loopStmt(stmt: SynNode, incoming: Pending[]): Pending[] {
     const kind: LoopKind = stmt.meta?.loopKind ?? 'while';
-    this.ids.enter('loop');
+    // Scope segment carries the loop KIND, so paths read `while@0` / `for@0` as spec sec.6's
+    // worked example shows — not a generic `loop@0`.
+    this.ids.enter(kind === 'do-while' ? 'do' : kind);
 
     const header = this.addNode({
       id: this.ids.block('cond'), kind: 'loop-header',
@@ -1350,21 +1530,22 @@ class GraphBuilder {
       meta: { loopKind: kind },
     });
 
-    const ctx: LoopCtx = { headerId: header.id, label: stmt.meta?.label, breaks: [], continueTarget: header.id };
+    const ctx: LoopCtx = { ctxKind: 'loop', headerId: header.id, label: stmt.meta?.label,
+                           breaks: [], continueTarget: header.id };
     this.loops.push(ctx);
 
     let bodyOut: Pending[];
     if (kind === 'do-while') {
       // body runs first; header is tested after
-      const bodyIn = incoming;
-      bodyOut = this.walk(stmt.children, bodyIn, 'body');
+      // Remember where the body starts BEFORE walking it. `nodes.find(x => x.id !== header.id)`
+      // would return the function entry node and emit a bogus header -> entry edge.
+      const bodyStart = this.nodes.length;
+      bodyOut = this.walk(stmt.children, incoming, 'body');
       this.connect(bodyOut, header.id);
-      // header loops back into the body's first node
-      const firstBody = this.nodes.find((x) => x.id !== header.id);
-      if (firstBody) {
-        this.edges.push({ id: `e${this.edgeSeq++}`, source: header.id,
-          target: firstBody.id, kind: 'back', label: kind });
-      }
+      const firstBody = this.nodes[bodyStart];
+      this.edges.push({ id: `e${this.edgeSeq++}`, source: header.id,
+        // an empty body degrades to a self-loop rather than a dangling edge
+        target: firstBody ? firstBody.id : header.id, kind: 'back', label: kind });
     } else {
       this.connect(incoming, header.id);
       bodyOut = this.walk(stmt.children, [{ from: header.id, kind: 'true', label: 'true' }], 'body');
@@ -1395,57 +1576,76 @@ class GraphBuilder {
     });
     this.connect(incoming, sw.id);
 
-    const ctx: LoopCtx = { headerId: sw.id, breaks: [], continueTarget: sw.id };
-    this.loops.push(ctx);   // so `break` inside a case is handled
+    // ctxKind 'switch': collects `break`, but `continue` must pass through to the
+    // enclosing loop. A switch is not a loop.
+    const ctx: LoopCtx = { ctxKind: 'switch', headerId: sw.id, breaks: [], continueTarget: sw.id };
+    this.loops.push(ctx);
 
     const cases = stmt.children.filter((c) => c.kind === 'case');
+    const hasDefault = cases.some((c) => c.meta?.isDefault === true);
     /** exits of the previous case body, for implicit fallthrough */
     let fallthrough: Pending[] = [];
-    const out: Pending[] = [];
 
     for (const c of cases) {
-      const isDefault = c.meta?.caseValue === undefined;
+      const isDefault = c.meta?.isDefault === true;
       const entry: Pending[] = [
         { from: sw.id, kind: isDefault ? 'default' : 'case',
-          label: isDefault ? 'default' : `case ${c.meta!.caseValue}` },
+          label: isDefault ? 'default' : `case ${c.meta?.caseValue ?? ''}`.trim() },
         ...fallthrough,        // spec sec.5.1 — implicit fallthrough
       ];
-      const bodyOut = this.walk(c.children, entry, `case-${c.meta?.caseValue ?? 'default'}`);
-      const brokeOut = c.children.some((x) => x.kind === 'break');
-      fallthrough = brokeOut ? [] : bodyOut;
-      if (brokeOut) out.push(...[]);   // break edges are collected in ctx.breaks
-      else if (c === cases[cases.length - 1]) out.push(...bodyOut);
+      const role = `case-${isDefault ? 'default' : c.meta?.caseValue ?? ''}`;
+      const bodyOut = this.walk(c.children, entry, role);
+      fallthrough = c.children.some((x) => x.kind === 'break') ? [] : bodyOut;
     }
+    // Only the final case's exits fall out of the switch; every earlier case either
+    // broke (collected in ctx.breaks) or fell through into its successor.
+    const out = fallthrough;
 
     this.loops.pop();
     this.ids.exit();
-    return [...out, ...ctx.breaks, { from: sw.id, kind: 'default', label: 'no match' }];
+    // Emit a bypass edge ONLY when no default arm exists — otherwise the default arm
+    // already covers "no match" and a second edge is a phantom.
+    return hasDefault
+      ? [...out, ...ctx.breaks]
+      : [...out, ...ctx.breaks, { from: sw.id, kind: 'default', label: 'no match' }];
   }
 
   private tryStmt(stmt: SynNode, incoming: Pending[]): Pending[] {
     this.ids.enter('try');
-    let finallyEntry: string | undefined;
 
-    // Emit finally first so returns inside try can target it (spec sec.5.4)
+    // RESERVE the finally id without consuming a block ordinal, but emit the NODE after
+    // the body — otherwise adding a finally clause renumbers every block in the try body
+    // and destroys saved layout for unrelated nodes.
+    let finallyEntry: string | undefined;
     if (stmt.meta?.finallyBody?.length) {
-      const marker = this.addNode({
-        id: this.ids.block('finally'), kind: 'basic',
-        label: stmt.meta.finallyBody[0].text,
-        statements: stmt.meta.finallyBody.map((s) => s.text),
-        span: stmt.meta.finallyBody[0].span,
-      });
-      finallyEntry = marker.id;
-      this.finallies.push({ entryId: marker.id });
+      finallyEntry = makeNodeId(this.functionId, this.ids.path(), 'finally');
+      this.finallies.push({ entryId: finallyEntry });
     }
 
+    const tryStart = this.nodes.length;
     const bodyOut = this.walk(stmt.children, incoming, 'try');
+    // DOCUMENTED SIMPLIFICATION: an exception is modelled as leaving the try region from
+    // its ENTRY node, not from every node inside it. A precise model would add an edge
+    // from each statement that can throw, which for most languages is nearly all of them
+    // and renders as a hairball. Recorded in spec sec.5.4.
+    const tryEntry = this.nodes[tryStart]?.id;
 
     const catchOuts: Pending[] = [];
-    for (const cb of stmt.meta?.catchBodies ?? []) {
-      catchOuts.push(...this.walk([cb], [{ from: bodyOut[0]?.from ?? incoming[0]?.from ?? '', kind: 'exception' }], 'catch'));
+    if (tryEntry) {
+      // One walk per HANDLER. catchBodies is SynNode[][] precisely so handler
+      // boundaries survive — flattening produced one pseudo-handler per statement.
+      for (const handler of stmt.meta?.catchBodies ?? []) {
+        catchOuts.push(...this.walk(handler,
+          [{ from: tryEntry, kind: 'exception', label: 'exception' }], 'catch'));
+      }
     }
 
     if (finallyEntry) {
+      const fb = stmt.meta!.finallyBody!;
+      this.addNode({
+        id: finallyEntry, kind: 'basic', label: fb[0].text,
+        statements: fb.map((x) => x.text), span: fb[0].span,
+      });
       this.finallies.pop();
       this.connect([...bodyOut, ...catchOuts], finallyEntry);
       this.ids.exit();
@@ -1501,9 +1701,9 @@ class GraphBuilder {
 
   private continueStmt(stmt: SynNode, incoming: Pending[]): Pending[] {
     const label = stmt.meta?.label;
-    const target = label
-      ? [...this.loops].reverse().find((l) => l.label === label)
-      : this.loops[this.loops.length - 1];
+    // `continue` binds to the innermost enclosing LOOP, never to a switch in between.
+    const loopsOnly = [...this.loops].reverse().filter((l) => l.ctxKind === 'loop');
+    const target = label ? loopsOnly.find((l) => l.label === label) : loopsOnly[0];
     if (!target) return incoming;
 
     const node = this.addNode({
@@ -1558,18 +1758,34 @@ export function buildProgramIR(
   const functions = funcs.map((f) => buildFunctionGraph(f.node, f.id, f.name, f.params));
 
   // Call edges: a call whose text names a known function links the two subgraphs.
-  const byName = new Map(functions.map((f) => [f.name, f.id]));
-  const callEdges = functions.flatMap((f) =>
-    f.nodes.flatMap((node) =>
-      node.statements.flatMap((s) => {
-        const m = /([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
-        const target = m && byName.get(m[1]);
-        return target && target !== f.id
-          ? [{ from: f.id, to: target, nodeId: node.id }]
-          : [];
-      }),
-    ),
-  );
+  // Resolve by name but REFUSE to guess when a name is ambiguous — a wrong call edge is
+  // worse than a missing one.
+  const byName = new Map<string, string[]>();
+  for (const f of functions) {
+    const ids = byName.get(f.name) ?? [];
+    ids.push(f.id);
+    byName.set(f.name, ids);
+  }
+
+  const CALL_RE = /\b([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;   // /g is required by matchAll
+  const seen = new Set<string>();
+  const callEdges: CallEdge[] = [];
+  for (const f of functions) {
+    for (const node of f.nodes) {
+      for (const stmt of node.statements) {
+        for (const m of stmt.matchAll(CALL_RE)) {
+          const candidates = byName.get(m[1]);
+          if (!candidates || candidates.length !== 1) continue;   // unknown or ambiguous
+          const to = candidates[0];
+          const key = `${f.id}->${to}@${node.id}`;
+          if (seen.has(key)) continue;                            // dedupe within a block
+          seen.add(key);
+          // Self-calls are KEPT: recursion is the hero feature, not noise.
+          callEdges.push({ from: f.id, to, nodeId: node.id });
+        }
+      }
+    }
+  }
 
   return { language, functions, callEdges, diagnostics, irVersion: IR_VERSION };
 }
@@ -1578,8 +1794,9 @@ export function buildProgramIR(
 - [ ] **Step 4: Run the tests**
 
 Run: `pnpm test src/lib/ir/builder.test.ts`
-Expected: PASS. If the switch-fallthrough or labeled-break test fails, fix the builder —
-those two are the spec's named hard cases and must not be skipped.
+Expected: PASS (18 tests). If the switch-fallthrough, labeled-break, multi-statement-else,
+or continue-through-switch test fails, fix the builder — those are the spec's named hard
+cases and the four places a naive implementation silently produces a wrong graph.
 
 - [ ] **Step 5: Commit**
 
@@ -1608,39 +1825,53 @@ git commit -m "feat: language-agnostic CFG builder with fallthrough and labeled-
 - [ ] **Step 1: Install tree-sitter and vendor the grammars**
 
 ```bash
-pnpm add web-tree-sitter
-pnpm add -D tree-sitter-python tree-sitter-cpp tree-sitter-java
+pnpm add web-tree-sitter@0.27.0
+pnpm add -D tree-sitter-python@0.25.0 tree-sitter-cpp@0.23.4 tree-sitter-java@0.23.5
 ```
+
+**No compiler toolchain is needed.** Each `tree-sitter-<lang>` package publishes a prebuilt,
+ABI-compatible `.wasm` at its package root (verified loading and parsing under
+web-tree-sitter 0.27.0). `pnpm grammars` is a plain copy.
 
 Add to `package.json` scripts — the WASM files must be served, not bundled:
 
 ```json
-"grammars": "mkdir -p public/grammars && cp node_modules/web-tree-sitter/tree-sitter.wasm public/grammars/ && node scripts/build-grammars.mjs"
+"grammars": "mkdir -p public/grammars && cp node_modules/web-tree-sitter/web-tree-sitter.wasm public/grammars/ && cp node_modules/tree-sitter-python/tree-sitter-python.wasm node_modules/tree-sitter-cpp/tree-sitter-cpp.wasm node_modules/tree-sitter-java/tree-sitter-java.wasm public/grammars/"
 ```
 
-Create `scripts/build-grammars.mjs`:
+The runtime wasm is `web-tree-sitter.wasm`, **not** `tree-sitter.wasm` — it was renamed in
+0.26.0 and the package's exports map only exposes the new name. The basename is load-bearing:
+emscripten asks `locateFile` for exactly that string, so that is what must land in
+`public/grammars/`.
 
-```js
-// Builds tree-sitter-<lang>.wasm into public/grammars/ using the tree-sitter CLI.
-import { execSync } from 'node:child_process';
-import { mkdirSync } from 'node:fs';
-
-mkdirSync('public/grammars', { recursive: true });
-for (const lang of ['python', 'cpp', 'java']) {
-  console.log(`building ${lang}…`);
-  execSync(
-    `pnpm dlx tree-sitter build --wasm -o public/grammars/tree-sitter-${lang}.wasm ` +
-    `node_modules/tree-sitter-${lang}`,
-    { stdio: 'inherit' },
-  );
-}
-```
+Do **not** write a build script. `pnpm dlx tree-sitter` resolves the `tree-sitter` npm
+package (Node bindings), which has **no `bin` field** — only `tree-sitter-cli` declares one —
+so that command can never run.
 
 Run: `pnpm grammars`
-Expected: `public/grammars/tree-sitter-python.wasm` exists. **If the build fails** (it needs
-docker or emscripten), fall back to a prebuilt package: `pnpm add @vscode/tree-sitter-wasm`
-and copy from there, or download the release asset for `tree-sitter-python`. Record whichever
-route worked in `PROGRESS.md`.
+Expected, in about a second, four files in `public/grammars/`:
+
+```
+web-tree-sitter.wasm          # the runtime
+tree-sitter-python.wasm       # ~1.4 MB
+tree-sitter-cpp.wasm          # ~3.4 MB
+tree-sitter-java.wasm         # ~0.7 MB
+```
+
+Copy all three grammars even though only Python has an adapter in P1 — it keeps
+`registry.ts` honest, and no P1 code path fetches the C++ wasm (the cache is per-language).
+
+**Fallback**, only if a grammar package ever stops shipping its `.wasm` — note the `wasm/`
+subdirectory:
+
+```bash
+pnpm add -D @vscode/tree-sitter-wasm@0.3.1
+cp node_modules/@vscode/tree-sitter-wasm/wasm/tree-sitter-{python,cpp,java}.wasm public/grammars/
+```
+
+**Do not use `tree-sitter-wasms`.** Its artifacts carry the legacy `dylink` section;
+web-tree-sitter 0.27 reads only `dylink.0`, so `Language.load` throws with an *empty*
+message — a miserable thing to debug.
 
 - [ ] **Step 2: Write the failing Python adapter test**
 
@@ -1752,33 +1983,38 @@ function stmts(list: TSNode[]): SynNode[] {
   return list.flatMap(toSynStmt);
 }
 
+/**
+ * Turn `[elif, elif, …, else]` into a single nested-if else arm.
+ *
+ * Recurse over the CLAUSE LIST — never over a synthesized tree-sitter node. web-tree-sitter
+ * exposes `type`/`text`/`isNamed`/`children` as PROTOTYPE GETTERS, so `{ ...node }` copies
+ * none of them: the spread object has `type === undefined`, falls to the default arm, and
+ * silently returns []. That drops every clause after the first elif with no error at all.
+ */
+function elseArmOf(alts: TSNode[]): SynNode[] {
+  if (alts.length === 0) return [];
+  const [first, ...rest] = alts;
+  if (first.type === 'else_clause') {
+    return stmts(block(first.childForFieldName('body')));
+  }
+  // elif_clause has fields 'condition' + 'consequence'
+  const cond = first.childForFieldName('condition')!;
+  const body = stmts(block(first.childForFieldName('consequence')));
+  const deeper = elseArmOf(rest);
+  return [syn('if', head(cond), body, span(first),
+              deeper.length ? { elseBody: deeper } : undefined)];
+}
+
 function toSynStmt(n: TSNode): SynNode[] {
   switch (n.type) {
     case 'if_statement': {
       const cond = n.childForFieldName('condition')!;
-      const body = stmts(block(n.childForFieldName('consequence')));
-      // python chains elif as `alternative` children
+      const thenBody = stmts(block(n.childForFieldName('consequence')));
       const alts = n.children.filter((c) => c.type === 'elif_clause' || c.type === 'else_clause');
-      let elseBody: SynNode[] = [];
-      if (alts.length) {
-        const [first, ...rest] = alts;
-        if (first.type === 'elif_clause') {
-          const nested: TSNode = { ...first, type: 'if_statement' } as TSNode;
-          void nested;
-          // Represent elif as a nested if in the else arm
-          const elifCond = first.childForFieldName('condition')!;
-          const elifBody = stmts(block(first.childForFieldName('consequence')));
-          const deeper = rest.length
-            ? toSynStmt({ ...first, children: rest } as TSNode)
-            : [];
-          elseBody = [syn('if', head(elifCond), [...elifBody, ...deeper],
-                          span(first), { hasElse: deeper.length > 0 })];
-        } else {
-          elseBody = stmts(block(first.childForFieldName('body')));
-        }
-      }
-      return [syn('if', head(cond), [...body, ...elseBody], span(n),
-                  { hasElse: elseBody.length > 0 })];
+      const elseBody = elseArmOf(alts);
+      // children = then arm ONLY; the else arm travels in meta.elseBody
+      return [syn('if', head(cond), thenBody, span(n),
+                  elseBody.length ? { elseBody } : undefined)];
     }
 
     case 'while_statement': {
@@ -1807,8 +2043,9 @@ function toSynStmt(n: TSNode): SynNode[] {
       return [syn('try', 'try', stmts(block(n.childForFieldName('body'))), span(n), {
         ...(finallyClause
           ? { finallyBody: stmts(block(finallyClause.namedChildren[0] ?? null)) } : {}),
+        // map, NOT flatMap — one array per handler keeps handler boundaries intact
         ...(excepts.length
-          ? { catchBodies: excepts.flatMap((e) => stmts(block(e.namedChildren.at(-1) ?? null))) }
+          ? { catchBodies: excepts.map((e) => stmts(block(e.namedChildren.at(-1) ?? null))) }
           : {}),
       })];
     }
@@ -1821,8 +2058,14 @@ function toSynStmt(n: TSNode): SynNode[] {
     case 'match_statement': {
       const cases = n.namedChildren
         .filter((c) => c.type === 'case_clause')
-        .map((c) => syn('case', head(c), stmts(block(c.namedChildren.at(-1) ?? null)),
-                        span(c), { caseValue: head(c).replace(/^case\s*/, '') }));
+        .map((c) => {
+          // Strip BOTH the leading keyword and the trailing colon, or 'case 1:' yields the
+          // pattern '1:' — which leaks into edge labels and never matches the '_' default.
+          const pattern = head(c).replace(/^case\s*/, '').replace(/:\s*$/, '').trim();
+          return syn('case', head(c),
+                     stmts(block(c.childForFieldName('consequence'))), span(c),
+                     pattern === '_' ? { isDefault: true } : { caseValue: pattern });
+        });
       return [syn('switch', head(n.childForFieldName('subject') ?? n), cases, span(n))];
     }
 
@@ -1865,7 +2108,10 @@ export function toSyn(root: TSNode): { funcs: SynFunction[]; diagnostics: Diagno
         name, params: ps,
         node: syn('func', name, stmts(block(n.childForFieldName('body'))), span(n)),
       });
-      return;   // do not descend into nested defs; P1 treats them as separate later
+      // P1 does not descend into nested defs — a closure or inner helper is DROPPED from
+      // the diagram entirely. Acceptable for DSA code, where nesting is rare; revisit when
+      // it bites. (Do not describe this as "treated as separate" — they are not emitted.)
+      return;
     }
     for (const c of n.namedChildren) visit(c);
   };
@@ -1898,24 +2144,33 @@ export const LANGUAGES: Record<Language, { grammarUrl: string; adapter: Adapter 
 Create `src/lib/ir/parse.ts`:
 
 ```ts
-import { Parser, Language as TSLanguage } from 'web-tree-sitter';
+import { Parser, Language as TSLanguage, type Tree } from 'web-tree-sitter';
 import { buildProgramIR } from './builder';
 import { LANGUAGES } from './languages/registry';
 import { IR_VERSION, type Language, type ProgramIR } from './types';
 import type { TSNode } from './languages/python';
 
-let initialized = false;
+/** True only in Node (Vitest, the Inngest job). A browser web worker has no `window`
+ *  either, so never test for `window` to detect the host. */
+const IS_NODE = typeof process !== 'undefined' && process.versions?.node != null;
+
+let initPromise: Promise<void> | null = null;
 const grammarCache = new Map<Language, TSLanguage>();
 
 /** Where tree-sitter.wasm lives. Overridable so a Node job can pass a file path. */
 export interface ParseOptions { baseUrl?: string }
 
-async function ensureInit(baseUrl: string): Promise<void> {
-  if (initialized) return;
-  await Parser.init({
-    locateFile: (name: string) => `${baseUrl}/${name}`,
-  });
-  initialized = true;
+/**
+ * Node already resolves web-tree-sitter.wasm next to its own module in node_modules; a
+ * locateFile override there yields a cwd-relative path and aborts with ENOENT. Caching
+ * the PROMISE (not a boolean) closes the double-init window when the worker fires two
+ * parses back to back.
+ */
+function ensureInit(baseUrl: string): Promise<void> {
+  initPromise ??= IS_NODE
+    ? Parser.init()
+    : Parser.init({ locateFile: (name: string) => `${baseUrl}/grammars/${name}` });
+  return initPromise;
 }
 
 async function loadGrammar(language: Language, baseUrl: string): Promise<TSLanguage> {
@@ -1936,14 +2191,19 @@ async function loadGrammar(language: Language, baseUrl: string): Promise<TSLangu
 export async function parseToIR(
   source: string, language: Language, opts: ParseOptions = {},
 ): Promise<ProgramIR> {
-  const baseUrl = opts.baseUrl ?? (typeof window !== 'undefined' ? '' : 'public');
-  await ensureInit(`${baseUrl}/grammars`);
+  // NOTE: ensureInit takes the BARE baseUrl and appends /grammars itself.
+  const baseUrl = opts.baseUrl ?? (IS_NODE ? 'public' : '');
+  await ensureInit(baseUrl);
 
   const parser = new Parser();
   parser.setLanguage(await loadGrammar(language, baseUrl));
 
+  // A Tree is its own wasm-backed handle and must be freed too. The worker calls this on
+  // every debounced keystroke for the life of the session — leaking Trees grows the
+  // emscripten heap without bound in the hot path.
+  let tree: Tree | null = null;
   try {
-    const tree = parser.parse(source);
+    tree = parser.parse(source);
     if (!tree) {
       return { language, functions: [], callEdges: [], irVersion: IR_VERSION,
                diagnostics: [{ severity: 'error', message: 'Parser returned no tree',
@@ -1952,6 +2212,7 @@ export async function parseToIR(
     const { funcs, diagnostics } = LANGUAGES[language].adapter(tree.rootNode as unknown as TSNode);
     return buildProgramIR(funcs, language, diagnostics);
   } finally {
+    tree?.delete();
     parser.delete();
   }
 }
@@ -1960,9 +2221,18 @@ export async function parseToIR(
 - [ ] **Step 6: Run the adapter tests**
 
 Run: `pnpm test src/lib/ir/languages/python.test.ts`
-Expected: PASS (6 tests). Node needs the WASM path — if grammar loading fails under Vitest,
-add `test.server.deps.inline: ['web-tree-sitter']` to `vitest.config.ts` and pass
-`{ baseUrl: 'public' }` in the test calls.
+Expected: PASS (7 tests). These tests run in the `unit` project (jsdom), but
+`web-tree-sitter` needs Node's filesystem to load the grammar, so add the docblock at the
+top of this test file:
+
+```ts
+// @vitest-environment node
+```
+
+and pass `{ baseUrl: 'public' }` in the calls, so Node resolves
+`public/grammars/tree-sitter-python.wasm` from the repo root. `Parser.init()` takes no
+`locateFile` in Node — see Step 5. If loading still fails, check the grammar path before
+reaching for `deps.inline`; that is a hint, not a fix.
 
 - [ ] **Step 7: Add the golden fixtures**
 
@@ -2095,7 +2365,7 @@ Create `src/lib/layout/elk.test.ts`:
 
 ```ts
 import { describe, it, expect } from 'vitest';
-import { layoutFunction, nodeSize } from './elk';
+import { layoutFunction, nodeSize, fallbackLayout } from './elk';
 import type { FunctionGraph, IRNode } from '@/lib/ir/types';
 
 const node = (id: string, kind: IRNode['kind'], statements: string[] = []): IRNode =>
@@ -2166,13 +2436,33 @@ describe('layoutFunction', () => {
     expect(JSON.stringify(a.nodes)).toBe(JSON.stringify(b.nodes));
   });
 
-  it('falls back to a simple stack when elk throws', async () => {
-    // A graph with an edge to a nonexistent node makes elk reject.
+  // ELK *would* reject a dangling edge, but layoutFunction filters those out before
+  // calling it — so this exercises the SUCCESS path. Assert the drop, not the fallback.
+  it('drops dangling edges instead of failing the whole layout', async () => {
     const broken = simpleLoop();
     broken.edges.push({ id: 'bad', source: 'header', target: 'ghost', kind: 'seq' });
     const out = await layoutFunction(broken);
-    // degrade, never blank (spec sec.11)
-    expect(out.nodes.length).toBeGreaterThan(0);
+    expect(out.nodes).toHaveLength(4);
+    expect(out.edges.map((e) => e.id)).not.toContain('bad');
+  });
+
+  // Cover the real degrade path directly (spec sec.11: degrade, never blank).
+  it('fallbackLayout stacks every node in a deterministic top-down order', () => {
+    const out = fallbackLayout(simpleLoop());
+    expect(out.nodes).toHaveLength(4);
+    expect(out.width).toBeGreaterThan(0);
+    expect(out.height).toBeGreaterThan(0);
+    const ys = out.nodes.map((n) => n.y);
+    expect([...ys].sort((a, b) => a - b)).toEqual(ys);   // already ascending
+  });
+
+  it('skips ELK entirely past MAX_LAYOUT_NODES', async () => {
+    const big = simpleLoop();
+    big.nodes = Array.from({ length: 601 }, (_, i) => node(`n${i}`, 'basic', [`s${i}`]));
+    big.edges = [];
+    const out = await layoutFunction(big);
+    expect(out.nodes).toHaveLength(601);            // rendered, not dropped
+    expect(out.nodes.every((n) => n.x === 0)).toBe(true);   // the stacked fallback
   });
 });
 ```
@@ -2217,7 +2507,15 @@ const PAD_X = 28;
 const PAD_Y = 20;
 const MIN_W = 140;
 const MAX_W = 420;
-const LAYOUT_TIMEOUT_MS = 5000;
+
+// elk.bundled.js is a SYNCHRONOUS GWT-compiled solver: it blocks the thread, so a
+// Promise.race against a setTimeout can never fire — the timer callback cannot run until
+// layout has already resolved. Bound the work by graph size instead.
+// Measured (elkjs 0.12.0): 400 nodes ~0.7s | 600 ~1.4s | 800 ~2.4s | 1000 ~3.3s
+//                          1500 ~7.8s | 3000 -> RangeError: Maximum call stack size
+// 600 keeps the worst case near ~1.5s, inside the spec sec.11 budget, and stays well clear
+// of the stack-overflow cliff. Do NOT raise it to 1500 — that alone blows the budget.
+const MAX_LAYOUT_NODES = 600;
 
 /**
  * Node box size. Branch and switch nodes get extra width because they render
@@ -2243,15 +2541,20 @@ const ELK_OPTIONS: Record<string, string> = {
   'elk.spacing.nodeNode': '32',
   'elk.spacing.edgeNode': '20',
   'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
-  // Back edges are the point of a CFG — let ELK route them rather than reverse them.
+  // ELK REVERSES back edges unconditionally in the layered algorithm; this strategy only
+  // chooses WHICH edges get reversed, not whether. So a laid-out back edge's endpoints are
+  // swapped relative to the IR. The renderer must therefore take direction from the IR
+  // edge (kind === 'back'), never from the ELK section's point order.
   'elk.layered.cycleBreaking.strategy': 'DEPTH_FIRST',
   'elk.edgeRouting': 'ORTHOGONAL',
   'elk.layered.mergeEdges': 'false',
-  'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+  // No 'elk.hierarchyHandling' — verified no-op here (children are leaves and each
+  // function is laid out as its own top-level graph); output is byte-identical without it.
 };
 
-/** Deterministic vertical stack, used when ELK fails or times out. */
-function fallbackLayout(g: FunctionGraph): LaidOutGraph {
+/** Deterministic vertical stack, used when ELK fails or the graph is too large.
+ *  Exported so the degrade path can be tested directly (spec sec.11). */
+export function fallbackLayout(g: FunctionGraph): LaidOutGraph {
   let y = 0;
   let maxW = 0;
   const nodes: PositionedNode[] = g.nodes.map((n) => {
@@ -2265,6 +2568,9 @@ function fallbackLayout(g: FunctionGraph): LaidOutGraph {
 }
 
 export async function layoutFunction(g: FunctionGraph): Promise<LaidOutGraph> {
+  // Degrade, never blank (spec sec.11): an oversized graph skips ELK entirely.
+  if (g.nodes.length > MAX_LAYOUT_NODES) return fallbackLayout(g);
+
   const ids = new Set(g.nodes.map((n) => n.id));
   const graph: ElkNode = {
     id: g.id,
@@ -2277,9 +2583,7 @@ export async function layoutFunction(g: FunctionGraph): Promise<LaidOutGraph> {
   };
 
   try {
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('elk timeout')), LAYOUT_TIMEOUT_MS));
-    const laid = await Promise.race([elk.layout(graph), timeout]);
+    const laid = await elk.layout(graph);
 
     const nodes: PositionedNode[] = (laid.children ?? []).map((c) => ({
       id: c.id, x: c.x ?? 0, y: c.y ?? 0, width: c.width ?? MIN_W, height: c.height ?? LINE_H,
@@ -2311,7 +2615,7 @@ export async function layoutProgram(
 - [ ] **Step 5: Run the tests**
 
 Run: `pnpm test src/lib/layout/elk.test.ts`
-Expected: PASS (8 tests)
+Expected: PASS (10 tests)
 
 - [ ] **Step 6: Write the worker**
 
@@ -3220,8 +3524,9 @@ via a server action as an interim measure; Plan 2 moves that behind Inngest.
 **Type consistency:** `parseToIR`, `buildProgramIR`, `buildFunctionGraph`, `layoutFunction`,
 `layoutProgram`, `toReactFlow`, `nodeSize`, `IdBuilder.{enter,exit,block,path}`, `makeNodeId`,
 `resolveTheme` — each defined once and used with matching signatures. `SynNode.meta` fields
-(`hasElse`, `loopKind`, `label`, `caseValue`, `elseBody`, `finallyBody`, `catchBodies`) are
-declared in Task 4 and produced by Task 5's adapter.
+(`loopKind`, `label`, `caseValue`, `isDefault`, `elseBody`, `finallyBody`,
+`catchBodies: SynNode[][]`, `unsupported`) are declared in Task 4 and produced by Task 5's
+adapter. There is no `hasElse`: an else arm exists exactly when `meta.elseBody` is non-empty.
 
 **Known gap carried forward:** `src/lib/ir/languages/registry.ts` points `cpp` and `java` at the
 Python adapter as a placeholder so the registry shape is right. Plan 2 Task 1 replaces both.
