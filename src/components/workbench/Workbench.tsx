@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CodeEditor } from '@/components/editor/CodeEditor';
 import { FlowCanvas } from '@/components/canvas/FlowCanvas';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -10,25 +10,71 @@ import type { Language } from '@/lib/ir/types';
 import './workbench.css';
 
 type Pane = 'code' | 'diagram';
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
-/**
- * The three-pane shell, minus persistence.
- *
- * Persistence and auth need Postgres, which is blocked on this machine (no
- * container runtime). Everything downstream of the parse works without them, so
- * this proves the slice end to end: source -> IR -> layout -> canvas, and a node
- * click scrolling the editor to its line.
- */
-export function Workbench({ initialSource }: { initialSource: string }) {
+const SAVE_DEBOUNCE_MS = 1500;
+
+interface Props {
+  initialSource: string;
+  /** Absent in the standalone demo, where nothing is persisted. */
+  projectId?: string;
+  title?: string;
+  language?: Language;
+  initialOverrides?: Record<string, { x: number; y: number }>;
+  /** Injected rather than imported, so this component stays usable without a database. */
+  onSave?: (source: string) => Promise<{ ok?: true; error?: string }>;
+}
+
+export function Workbench({
+  initialSource,
+  projectId,
+  title,
+  language = 'python',
+  initialOverrides,
+  onSave,
+}: Props) {
   const [source, setSource] = useState(initialSource);
   const [revealLine, setRevealLine] = useState<number | undefined>();
   const [activeFn, setActiveFn] = useState(0);
   const [pane, setPane] = useState<Pane>('diagram');
-  const language: Language = 'python';
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const { ir, layouts, status, error } = useParse(source, language);
 
-  const onChange = useCallback((next: string) => setSource(next), []);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSource = useRef(source);
+
+  // Persist on idle, not on every keystroke. The local parse already keeps the
+  // diagram current, so a save is about durability, not display.
+  const onChange = useCallback(
+    (next: string) => {
+      setSource(next);
+      pendingSource.current = next;
+      if (!onSave) return;
+
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        setSaveState('saving');
+        void onSave(pendingSource.current).then((result) => {
+          if (result?.error) {
+            setSaveState('error');
+            setSaveError(result.error);
+          } else {
+            setSaveState('saved');
+            setSaveError(null);
+          }
+        });
+      }, SAVE_DEBOUNCE_MS);
+    },
+    [onSave],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
 
   const fn = ir?.functions[activeFn] ?? ir?.functions[0];
   const layout = fn ? layouts[fn.id] : undefined;
@@ -37,7 +83,7 @@ export function Workbench({ initialSource }: { initialSource: string }) {
   return (
     <div className="wb">
       <header className="wb__bar">
-        <span className="wb__brand">code-flow</span>
+        <span className="wb__brand">{title ?? 'code-flow'}</span>
 
         {ir && ir.functions.length > 0 && (
           <nav className="wb__tabs" role="tablist" aria-label="Functions">
@@ -55,12 +101,28 @@ export function Workbench({ initialSource }: { initialSource: string }) {
           </nav>
         )}
 
-        <span className="wb__status" data-status={status}>
-          {status === 'parsing' && 'parsing'}
-          {status === 'ready' && (errorCount > 0 ? `${errorCount} syntax error` : 'ready')}
-          {status === 'error' && 'parser error'}
-          {status === 'first-load' && 'loading'}
-          {status === 'idle' && 'empty'}
+        <span
+          className="wb__status"
+          data-status={saveState === 'error' ? 'error' : status}
+          title={saveError ?? undefined}
+        >
+          {saveState === 'error'
+            ? 'not saved'
+            : saveState === 'saving'
+              ? 'saving'
+              : status === 'parsing'
+                ? 'parsing'
+                : status === 'error'
+                  ? 'parser error'
+                  : status === 'first-load'
+                    ? 'loading'
+                    : status === 'idle'
+                      ? 'empty'
+                      : errorCount > 0
+                        ? `${errorCount} syntax error${errorCount > 1 ? 's' : ''}`
+                        : projectId
+                          ? 'saved'
+                          : 'ready'}
         </span>
         <ThemeToggle />
       </header>
@@ -89,6 +151,7 @@ export function Workbench({ initialSource }: { initialSource: string }) {
             <FlowCanvas
               graph={fn}
               layout={layout}
+              overrides={initialOverrides}
               onNodeClick={(line) => setRevealLine(line)}
             />
           )}

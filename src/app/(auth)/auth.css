@@ -1,0 +1,142 @@
+/* All 8 states on the submit button; loading matters because auth is a real
+ * round trip. Every colour through a token. */
+
+.auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--space-lg);
+}
+
+.auth__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 22rem;
+  gap: var(--space-2xs);
+  padding: var(--space-xl);
+  background: var(--color-paper-2);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-lg);
+}
+
+.auth__brand {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-3);
+}
+
+.auth__heading {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.auth__label {
+  margin-top: var(--space-sm);
+  font-size: var(--text-xs);
+  color: var(--color-ink-2);
+}
+
+.auth__input {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-paper);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.auth__input:hover:not(:disabled) {
+  border-color: var(--color-node-brdr);
+}
+.auth__input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+}
+.auth__input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+.auth__input:disabled {
+  opacity: 0.6;
+}
+
+.auth__error {
+  margin: var(--space-sm) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-left: 3px solid var(--color-danger);
+  background: var(--color-paper-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+}
+.auth__error:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.auth__submit {
+  margin-top: var(--space-lg);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border: var(--rule-hair) solid transparent;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap; /* gate 49: never two-line clickable text */
+  transition:
+    filter var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.auth__submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.auth__submit:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.auth__submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.auth__submit:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.auth__alt {
+  margin: var(--space-md) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-ink-2);
+}
+
+.auth__link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.auth__link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth__input,
+  .auth__submit {
+    transition: opacity 150ms var(--ease-out);
+  }
+  .auth__submit:active:not(:disabled) {
+    transform: none;
+  }
+}
