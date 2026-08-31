@@ -1,0 +1,22 @@
+# Secrets
+.env
+.env.local
+.env*.local
+.claude/settings.local.json
+
+# Dependencies / build
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Test + tooling output
+coverage/
+playwright-report/
+test-results/
+.eslintcache
+
+# OS / editor
+.DS_Store
+*.swp
