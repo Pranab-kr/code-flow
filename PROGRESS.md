@@ -12,51 +12,57 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 |---|---|
 | **Last updated** | 2026-09-01 |
 | **Phase** | P1 (of 4) — foundation |
-| **Active plan** | `docs/superpowers/plans/2026-08-31-p1-vertical-slice.md` — Tasks 1, 3–7 **done**; Task 2 blocked |
-| **Code written** | **Working end to end.** `pnpm dev` → `/demo` renders a real CFG from real Python. |
-| **Tests** | 101 passing · lint clean · `tsc --noEmit` clean · build succeeds |
-| **Blocked on** | **Postgres.** No container runtime on this machine (`pacman` needs sudo). See "The one blocker" below. |
-| **Next action** | Unblock Postgres, then Plan 2 Task 0 → Task 1 (schema + RLS) |
+| **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
+| **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
+| **Plan 2** | Tasks 1–4 done. **Task 5 (Realtime status) is the only one left.** |
+| **Tests** | 111 unit + 22 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Blocked on** | Nothing. |
+| **Next action** | Plan 2 Task 5 (Realtime), then Plan 3 (C++/Java). See `docs/superpowers/plans/2026-09-01-NEXT-SESSION.md`. |
 
 ---
 
-## What works right now
+## What works right now, in production
 
 ```bash
-pnpm install && pnpm grammars && pnpm dev
-# then open http://localhost:3000/demo
+pnpm install && pnpm grammars && pnpm dev   # local
+# http://localhost:3000/demo   — no auth, no persistence
+# http://localhost:3000/login  — the real app
 ```
 
-Paste or edit Python and the diagram re-derives as you type: parse → IR → ELK layout →
-React Flow, all in a worker. Clicking a node scrolls the editor to its line. The theme
-toggle cycles system → light → dark, and both drops pass every contrast gate.
+Live: sign in, create a project, edit Python, and the diagram re-derives as you type
+(parse → IR → ELK layout → React Flow, all in a worker). Clicking a node scrolls the editor
+to its line. Dragged positions persist. The Inngest job re-parses server-side and writes the
+authoritative graph.
 
-**Verified, not assumed:** `/demo` returns 200, both wasm files serve, and the page renders
-the editor with `binary_search`.
+**Verified in production, not assumed:**
+- All routes serve; `/projects` 307s to `/login?next=` when signed out; `/api/inngest` 401s
+  behind its signing key.
+- Both wasm files serve as `application/wasm` at full size.
+- **4 `analyze-snapshot` runs completed.** `graphs` rows contain the correct shape for
+  binary search: `entry, basic, loop-header, basic, branch, return, branch, basic, basic,
+  return` — 10 nodes, 0 diagnostics.
+- One snapshot shows 9 nodes + 1 diagnostic: a mid-typing partial parse, which is spec §11's
+  degrade-never-blank behaviour working rather than a bug.
 
-## The one blocker
+## Environment (hosted, already provisioned)
 
-**Task 2 (persistence) needs Postgres, and this machine has no container runtime.**
-`docker`, `podman`, `nerdctl`, and `colima` are all absent, and installing one needs
-`sudo pacman -S docker`, which an agent cannot run.
+| | |
+|---|---|
+| Supabase project | `code-flow` · `gsfosuvhysdesstetwjh` · ap-south-1 |
+| Keys | **New format** (`sb_publishable_…` / `sb_secret_…`), not the legacy anon/service_role JWTs |
+| Vercel | `code-flow-beta.vercel.app` (NOT `code-flow.vercel.app`) |
+| Inngest | app `code-flow`, SDK 4.18.1, 2 functions synced |
+| Vercel env vars | All 5 set: Supabase URL + publishable + service-role, Inngest event + signing |
+| `BYOK_KEK` | Generated into `.env.local`. **Not** in Vercel — not needed until Plan 5. |
 
-Two ways forward, both written up in **Plan 2 Task 0**:
-
-1. **Local** — a human runs `sudo pacman -S docker && sudo systemctl enable --now docker`,
-   then `pnpm dlx supabase start`. Free, fast, disposable.
-2. **Hosted** — create a project at supabase.com/dashboard and paste three values into
-   `.env.local`. No local runtime needed. The org's project cost is $0/month.
-
-Everything downstream of the parse was built and proven without it, so this blocks only
-auth, persistence, and the reload-survives-a-drag test.
+**Auth note:** email confirmation is ON, and Supabase's built-in email is rate-limited and
+often never arrives without custom SMTP. Confirm a test user via the admin API, or turn off
+Authentication → Sign In / Providers → Confirm email.
 
 ## Next up
 
-**Plan 2, Task 0** (`docs/superpowers/plans/2026-09-01-p1-plan2-persistence.md`) — provision
-Postgres, then Task 1 for the schema and the nine RLS negative tests.
-
-Use `superpowers:subagent-driven-development` (a fresh subagent per task, reviewed between
-tasks) or `superpowers:executing-plans` (inline, batched with checkpoints).
+**`docs/superpowers/plans/2026-09-01-NEXT-SESSION.md`** — read that first. It has the
+remaining work in order, with the traps that cost the most time this session.
 
 ---
 
@@ -65,16 +71,27 @@ tasks) or `superpowers:executing-plans` (inline, batched with checkpoints).
 | Task | Deliverable | State |
 |---|---|---|
 | 1 | Next 16 scaffold, Hallmark Aurora tokens, both themes, `resolveTheme` | ✅ `dace3c2` |
-| 2 | Supabase schema, RLS policies, **negative-path isolation tests** | ⛔ blocked — no Postgres; moved to Plan 2 |
+| 2 | Supabase schema, RLS policies, **negative-path isolation tests** | ➡️ moved to Plan 2 Task 1 (done there) |
 | 3 | IR types + structural node IDs (`IdBuilder`) | ✅ `ea54bfc` |
 | 4 | Language-agnostic CFG builder (the 7 hard constructs) | ✅ `02f4848` |
 | 5 | Python tree-sitter adapter + 12 golden fixtures | ✅ `58edc0d` |
 | 6 | ELK layout + debounced parse worker | ✅ `e2625f7` |
 | 7 | CodeMirror editor, React Flow canvas, working demo | ✅ `29e5bae` (routes + E2E deferred with Task 2) |
 
-**Still owed from Task 7**, both waiting on Postgres: the `/projects` routes (the demo page
-stands in) and the full-slice Playwright test, whose load-bearing assertion is that a dragged
-position survives a reload.
+**Still owed from Task 7:** the full-slice Playwright test. Its load-bearing assertion — a
+dragged position survives a reload — is covered by `tests/overrides.test.ts` against the real
+database, but not yet through a browser.
+
+## Task board — Plan 2
+
+| Task | Deliverable | State |
+|---|---|---|
+| 0 | Provision Postgres | ✅ hosted Supabase |
+| 1 | Schema, RLS, 16 isolation tests, 0 security advisors | ✅ `5a79dad` |
+| 2 | Auth, project routes, persistence | ✅ `9903c26` |
+| 3 | Inngest analyze job + orphan GC | ✅ `43f55f7`, fixed in `e043d0a` + `d832b49` |
+| 4 | Layout overrides with orphan retention | ✅ `fbbbe9e` |
+| 5 | **Realtime snapshot status** | ☐ **not started — do this next** |
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -262,6 +279,37 @@ edge's endpoints are swapped relative to the IR, so the renderer must take direc
 IR edge (`kind === 'back'`), never from the ELK section's point order. My original code
 comment claimed the opposite.
 
+### 2026-09-01 — Repeated submits are harmless by design
+Pressing Create/save several times queues several snapshots and several
+`analyze-snapshot` runs. This is CORRECT, not a bug to debounce away: `snapshots` is
+append-only, each row owns its own `graphs` row via a unique `snapshot_id`, and
+`projects.current_snapshot_id` simply points at the newest. Observed live: 4 runs completed,
+3 graph rows written, no duplicates and no lost work.
+
+The client already debounces saves at 1500ms of idle, which is where debouncing belongs. Do
+**not** add a server-side lock or dedupe — it would trade a harmless duplicate for a dropped
+edit, which is the worse failure.
+
+Worth knowing: a run can be *superseded* rather than wrong. Two rapid edits mean the older
+run writes a graph nobody will look at, because `current_snapshot_id` has moved on. That is
+wasted work, not incorrect state.
+
+### 2026-09-01 — Grammar wasm is traced into the serverless bundle, not read from public/
+`next.config.ts` sets `outputFileTracingIncludes` for `/api/inngest`. Vercel uploads
+`public/` to the CDN but does **not** put it on a serverless function's filesystem, so
+`parseToIR`'s cwd-relative path was ENOENT in production while working locally.
+
+Do not "simplify" this by deleting the config, and do not switch to `require.resolve()`:
+Turbopack cannot analyse a dynamic specifier, and it analyses `parse.ts` for the **browser**
+bundle too, since the worker imports it. Verify a change by reading
+`.next/server/app/api/inngest/route.js.nft.json` for the four wasm entries.
+
+### 2026-09-01 — Server actions cross to the client via .bind(), never a closure
+`saveSource(projectId, language, source)` is ordered so `.bind()` can pin the first two.
+React can only serialize a *reference* to a `"use server"` function; wrapping one in
+`(s) => save(s, language)` inside a Server Component throws at render and 500s the page.
+`bind` fills left to right, which is why the pinned arguments must come first.
+
 ### 2026-08-31 — MCP key referenced by env var, not inlined
 Project-scoped `.mcp.json` is meant to be committed, and `claude mcp add` wrote the key
 literally. Moved to `${TWENTYFIRST_API_KEY}`. Note `21ST_API_KEY` is **not** a valid shell
@@ -283,10 +331,28 @@ Things a future agent will otherwise trip over:
 4. ~~Aurora palette unverified~~ **Solved.** All 27 contrast pairs pass in both themes; the
    token block carries a `CONTRAST-VERIFIED` provenance comment. Re-run the check if you
    change any L value. `--color-rule` is intentionally below 3:1 — decorative, 1.4.11-exempt.
-4b. **React Flow v12, CodeMirror, Supabase SSR, and Next 16 worker/Tailwind are still
-   UNVERIFIED** (gateway 503s). Two suspected defects in Task 7: no `edgeTypes` registered
-   despite `type: 'ir'` on every edge, and `.react-flow__edge[data-kind]` CSS that v12
-   probably never emits. Verify before starting Task 7.
+4b. ~~React Flow v12 unverified~~ **Resolved.** Both suspected defects were real and are
+   fixed: v12 does not reflect `edge.data` to the DOM (styling goes through
+   `edge.className`), and only built-in edge types are used so nothing can go unregistered.
+   CodeMirror and Supabase SSR were verified by building against them.
+
+5. **"Works in `pnpm dev`" is not evidence for a serverless deploy.** This cost the most
+   time this session. Local Node has `cwd` = repo root and a real `public/`; a Vercel
+   function has neither. Two bugs shipped green because local state masked them — the wasm
+   ENOENT above, and the grammar packages that were never in `package.json` (a `pnpm add`
+   populated `node_modules` but the manifest write failed on a build-script gate, so every
+   local test passed while a fresh clone would install nothing). **Test from a clean clone
+   and read the build's trace output** before believing a deploy is sound.
+
+6. **pnpm 12 breaks on Vercel** — its launcher script fails to parse
+   (`line 4: syntax error near unexpected token ')'`) before reading the lockfile.
+   `packageManager` is pinned to `pnpm@10.34.5`. Note the build-script allowlist key is
+   `onlyBuiltDependencies` in pnpm 10 and was renamed `allowBuilds` in 11+; pnpm 10 silently
+   **ignores** the newer name, which would let postinstall scripts run on the build image.
+
+7. **Do not report a success through the error channel.** Signup returned "check your email"
+   as `error`, so a created account rendered in a red box and read as a failure.
+   `AuthResult` now has a separate `notice` field. Watch for this shape elsewhere.
 5. **Task 7 writes snapshots via a server action directly**, bypassing Inngest, as an interim
    measure. Plan 2 moves that behind the durable pipeline.
 6. **Do not proceed past a failing RLS test.** A negative test that passes when it should fail
