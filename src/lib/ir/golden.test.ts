@@ -5,10 +5,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { parseToIR } from './parse';
-import type { ProgramIR } from './types';
+import type { Language, ProgramIR } from './types';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const DIR = path.join(HERE, '__fixtures__/python');
 
 /**
  * Strip volatile fields so the snapshot captures STRUCTURE, not incidentals.
@@ -39,54 +38,71 @@ function normalize(ir: ProgramIR) {
   };
 }
 
-const files = readdirSync(DIR)
-  .filter((f) => f.endsWith('.py'))
-  .sort();
+/**
+ * One suite per language, over its own fixture directory.
+ *
+ * Describe names stay `<lang> golden fixtures` because the Python snapshots were
+ * read and verified once already — renaming the suite would orphan all 12 keys and
+ * silently re-record them, which is exactly the protection a golden test exists for.
+ */
+const SUITES: { language: Language; dir: string; ext: string; count: number }[] = [
+  { language: 'python', dir: 'python', ext: '.py', count: 12 },
+  { language: 'cpp', dir: 'cpp', ext: '.cpp', count: 14 },
+];
 
-describe('python golden fixtures', () => {
-  it('has all 12 fixtures', () => {
-    expect(files).toHaveLength(12);
-  });
+for (const suite of SUITES) {
+  const DIR = path.join(HERE, '__fixtures__', suite.dir);
+  const files = readdirSync(DIR)
+    .filter((f) => f.endsWith(suite.ext))
+    .sort();
 
-  for (const file of files) {
-    it(`matches the golden IR for ${file}`, async () => {
-      const source = readFileSync(path.join(DIR, file), 'utf8');
-      const ir = await parseToIR(source, 'python', { baseUrl: 'public' });
-      // A fixture is valid source: any error here is a parser bug, not a fixture typo.
-      expect(ir.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);
-      expect(normalize(ir)).toMatchSnapshot();
+  describe(`${suite.language} golden fixtures`, () => {
+    it(`has all ${suite.count} fixtures`, () => {
+      expect(files).toHaveLength(suite.count);
     });
-  }
-});
 
-describe('structural invariants across every fixture', () => {
-  it('never emits a dangling edge or a duplicate node id', async () => {
     for (const file of files) {
-      const source = readFileSync(path.join(DIR, file), 'utf8');
-      const ir = await parseToIR(source, 'python', { baseUrl: 'public' });
-      for (const f of ir.functions) {
-        const ids = new Set(f.nodes.map((n) => n.id));
-        expect(ids.size, `${file} ${f.id}: duplicate node ids`).toBe(f.nodes.length);
-        for (const e of f.edges) {
-          expect(ids.has(e.source), `${file} ${f.id}: edge from unknown ${e.source}`).toBe(true);
-          expect(ids.has(e.target), `${file} ${f.id}: edge to unknown ${e.target}`).toBe(true);
-        }
-      }
+      it(`matches the golden IR for ${file}`, async () => {
+        const source = readFileSync(path.join(DIR, file), 'utf8');
+        const ir = await parseToIR(source, suite.language, { baseUrl: 'public' });
+        // A fixture is valid source: any error here is a parser bug, not a fixture typo.
+        expect(ir.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);
+        expect(normalize(ir)).toMatchSnapshot();
+      });
     }
   });
 
-  it('every node except entry is reachable, or explicitly tagged unreachable', async () => {
-    for (const file of files) {
-      const source = readFileSync(path.join(DIR, file), 'utf8');
-      const ir = await parseToIR(source, 'python', { baseUrl: 'public' });
-      for (const f of ir.functions) {
-        const hasIncoming = new Set(f.edges.map((e) => e.target));
-        for (const n of f.nodes) {
-          if (n.id === f.entryId) continue;
-          const ok = hasIncoming.has(n.id) || n.meta?.unsupported === 'unreachable';
-          expect(ok, `${file} ${f.id}: orphan node ${n.id} (${n.kind})`).toBe(true);
+  describe(`${suite.language}: structural invariants across every fixture`, () => {
+    it('never emits a dangling edge or a duplicate node id', async () => {
+      for (const file of files) {
+        const source = readFileSync(path.join(DIR, file), 'utf8');
+        const ir = await parseToIR(source, suite.language, { baseUrl: 'public' });
+        for (const f of ir.functions) {
+          const ids = new Set(f.nodes.map((n) => n.id));
+          expect(ids.size, `${file} ${f.id}: duplicate node ids`).toBe(f.nodes.length);
+          for (const e of f.edges) {
+            expect(ids.has(e.source), `${file} ${f.id}: edge from unknown ${e.source}`).toBe(
+              true,
+            );
+            expect(ids.has(e.target), `${file} ${f.id}: edge to unknown ${e.target}`).toBe(true);
+          }
         }
       }
-    }
+    });
+
+    it('every node except entry is reachable, or explicitly tagged unreachable', async () => {
+      for (const file of files) {
+        const source = readFileSync(path.join(DIR, file), 'utf8');
+        const ir = await parseToIR(source, suite.language, { baseUrl: 'public' });
+        for (const f of ir.functions) {
+          const hasIncoming = new Set(f.edges.map((e) => e.target));
+          for (const n of f.nodes) {
+            if (n.id === f.entryId) continue;
+            const ok = hasIncoming.has(n.id) || n.meta?.unsupported === 'unreachable';
+            expect(ok, `${file} ${f.id}: orphan node ${n.id} (${n.kind})`).toBe(true);
+          }
+        }
+      }
+    });
   });
-});
+}

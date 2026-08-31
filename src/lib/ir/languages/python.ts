@@ -5,47 +5,12 @@
  * the normalized SynNode tree and never learns which language produced it.
  */
 
-import type { Diagnostic, Span } from '../types';
+import type { Diagnostic } from '../types';
 import type { SynFunction, SynNode } from '../builder';
+import { diagnosticsFor, head, span, syn, type TSNode } from './tsnode';
 
-/**
- * The slice of a tree-sitter node this adapter needs.
- *
- * Note these are PROTOTYPE GETTERS on the real object, not own properties — so
- * never `{...node}` a tree-sitter node. The spread silently copies none of them
- * and the result looks like an untyped node rather than throwing.
- */
-export interface TSNode {
-  type: string;
-  text: string;
-  startPosition: { row: number };
-  endPosition: { row: number };
-  namedChildren: TSNode[];
-  children: TSNode[];
-  childForFieldName(name: string): TSNode | null;
-  hasError: boolean;
-  /** True on a node tree-sitter inserted to recover, e.g. a missing ')'. */
-  isMissing: boolean;
-  isNamed: boolean;
-}
-
-const span = (n: TSNode): Span => ({
-  startLine: n.startPosition.row + 1,
-  endLine: n.endPosition.row + 1,
-});
-
-const syn = (
-  kind: SynNode['kind'],
-  text: string,
-  children: SynNode[],
-  s: Span,
-  meta?: SynNode['meta'],
-): SynNode => ({ kind, text: text.trim(), children, span: s, meta });
-
-/** First line only — node text can span many lines. */
-function head(n: TSNode): string {
-  return n.text.split('\n')[0].trim();
-}
+/** Re-exported for the adapters and parse.ts that already import it from here. */
+export type { TSNode };
 
 function block(n: TSNode | null): TSNode[] {
   if (!n) return [];
@@ -186,38 +151,8 @@ function params(fn: TSNode): string[] {
     .filter((t) => t && t !== 'self');
 }
 
-/**
- * Collect ERROR and MISSING nodes so a broken parse still reports where it broke.
- *
- * Both cases matter and they are distinct: tree-sitter emits an `ERROR` node for
- * text it cannot fit the grammar, but for a recoverable omission it instead
- * inserts a zero-width node with `isMissing` set — `def f(:` yields
- * `(parameters (MISSING ")"))` and no ERROR node anywhere. Checking only for
- * `ERROR` therefore reports nothing on a whole class of real syntax errors.
- */
-function collectDiagnostics(node: TSNode, out: Diagnostic[]): void {
-  if (node.isMissing) {
-    out.push({
-      severity: 'error',
-      message: `Syntax error: missing ${node.type}`,
-      span: span(node),
-    });
-    return;
-  }
-  if (node.type === 'ERROR') {
-    out.push({
-      severity: 'error',
-      message: `Syntax error near "${head(node)}"`,
-      span: span(node),
-    });
-    return;
-  }
-  for (const c of node.children) if (c.hasError) collectDiagnostics(c, out);
-}
-
 export function toSyn(root: TSNode): { funcs: SynFunction[]; diagnostics: Diagnostic[] } {
-  const diagnostics: Diagnostic[] = [];
-  if (root.hasError) collectDiagnostics(root, diagnostics);
+  const diagnostics = diagnosticsFor(root);
 
   const funcs: SynFunction[] = [];
 

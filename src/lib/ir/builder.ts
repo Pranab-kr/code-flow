@@ -95,12 +95,31 @@ class GraphBuilder {
   /** Enclosing try blocks that have a finally, innermost last. */
   private finallies: { entryId: string }[] = [];
 
+  /**
+   * Labels seen but not yet attached. A label names whichever node is emitted
+   * NEXT, which is why this is consumed in addNode rather than at one call site:
+   * `top: i++;` attaches to a basic block, `top: while (c) {}` to a loop header.
+   */
+  private labelQueue: string[] = [];
+  /** label -> id of the node it leads. Populated as the walk proceeds. */
+  private labelTargets = new Map<string, string>();
+  /**
+   * Goto edges waiting on their label. Deferred because a FORWARD goto names a
+   * label that has not been walked yet, so the target id does not exist at the
+   * time the goto is emitted.
+   */
+  private pendingGotos: { from: string; label: string }[] = [];
+
   constructor(private readonly functionId: string) {
     this.ids = new IdBuilder(functionId);
   }
 
   addNode(node: IRNode): IRNode {
     this.nodes.push(node);
+    if (this.labelQueue.length > 0) {
+      for (const label of this.labelQueue) this.labelTargets.set(label, node.id);
+      this.labelQueue = [];
+    }
     return node;
   }
 
@@ -164,8 +183,22 @@ class GraphBuilder {
     };
 
     for (const stmt of list) {
-      if (stmt.kind === 'stmt' || stmt.kind === 'call' || stmt.kind === 'label') {
+      if (stmt.kind === 'stmt' || stmt.kind === 'call') {
         run.push(stmt);
+        continue;
+      }
+      // A label names whatever comes NEXT rather than being a node itself, so it
+      // must close the current run: `i++; top: j++;` has to break into two blocks
+      // or the label would point at a block that starts before it.
+      if (stmt.kind === 'label') {
+        flush();
+        if (stmt.meta?.label) this.labelQueue.push(stmt.meta.label);
+        // A labelled statement carries its own body: `top: i++;` puts `i++` in
+        // children. Walking it here is what gives the label a node to attach to.
+        if (stmt.children.length > 0) {
+          pending = this.walk(stmt.children, pending);
+          if (pending.length === 0) unreachable = true;
+        }
         continue;
       }
       flush();
@@ -195,9 +228,48 @@ class GraphBuilder {
         return this.breakStmt(stmt, incoming);
       case 'continue':
         return this.continueStmt(stmt, incoming);
+      case 'goto':
+        return this.gotoStmt(stmt, incoming);
       default:
         return this.walk([{ ...stmt, kind: 'stmt' }], incoming);
     }
+  }
+
+  /**
+   * `goto` (spec §5.2). Resolution is DEFERRED: a forward goto names a label the
+   * walk has not reached, so the target id does not exist yet. Returns [] because
+   * a goto never falls through to the next statement.
+   */
+  private gotoStmt(stmt: SynNode, incoming: Pending[]): Pending[] {
+    const node = this.addNode({
+      id: this.ids.block('goto'),
+      kind: 'basic',
+      label: stmt.text,
+      statements: [stmt.text],
+      span: stmt.span,
+    });
+    this.connect(incoming, node.id);
+    if (stmt.meta?.label) this.pendingGotos.push({ from: node.id, label: stmt.meta.label });
+    return [];
+  }
+
+  /**
+   * Wire every goto to its label, once the whole function has been walked.
+   *
+   * Direction is decided by EMISSION ORDER, not by the grammar: a goto pointing at
+   * an already-emitted node is a back edge and closes a cycle, which is the case
+   * spec §5.2 warns produces an irreducible graph. A goto naming a label that does
+   * not exist is dropped — malformed source degrades rather than throwing.
+   */
+  resolveGotos(): void {
+    const order = new Map(this.nodes.map((n, i) => [n.id, i]));
+    for (const g of this.pendingGotos) {
+      const target = this.labelTargets.get(g.label);
+      if (!target) continue;
+      const isBack = (order.get(target) ?? 0) <= (order.get(g.from) ?? 0);
+      this.edge(g.from, target, isBack ? 'back' : 'seq', `goto ${g.label}`);
+    }
+    this.pendingGotos = [];
   }
 
   private ifStmt(stmt: SynNode, incoming: Pending[]): Pending[] {
@@ -529,6 +601,11 @@ export function buildFunctionGraph(
     }
     b.exitIds.push(exit.id);
   }
+
+  // AFTER the exit node on purpose: a label with nothing following it (`done:` as
+  // the last line) is consumed by addNode when the exit is emitted, so a goto
+  // naming it resolves to the function end rather than being dropped.
+  b.resolveGotos();
 
   return {
     id: functionId,

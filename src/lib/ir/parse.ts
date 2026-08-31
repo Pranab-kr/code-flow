@@ -9,7 +9,7 @@ import { Parser, Language as TSLanguage, type Tree } from 'web-tree-sitter';
 import { buildProgramIR } from './builder';
 import { LANGUAGES } from './languages/registry';
 import { IR_VERSION, type Language, type ProgramIR } from './types';
-import type { TSNode } from './languages/python';
+import type { TSNode } from './languages/tsnode';
 
 /**
  * True only in Node. Deliberately NOT `typeof window !== 'undefined'`: a browser

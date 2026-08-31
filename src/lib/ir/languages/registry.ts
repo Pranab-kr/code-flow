@@ -1,14 +1,11 @@
 import type { Language, Diagnostic } from '../types';
 import type { SynFunction } from '../builder';
-import { toSyn as pythonToSyn, type TSNode } from './python';
+import { toSyn as pythonToSyn } from './python';
+import { toSyn as cppToSyn } from './cpp';
+import type { TSNode } from './tsnode';
 
 export type Adapter = (root: TSNode) => { funcs: SynFunction[]; diagnostics: Diagnostic[] };
 
-/**
- * NOTE: cpp and java point at the Python adapter as a PLACEHOLDER so the registry
- * shape is settled. They are NOT working — real adapters land in Plan 3, and no
- * C++/Java option may be exposed to users before then.
- */
 export const LANGUAGES: Record<
   Language,
   {
@@ -27,8 +24,13 @@ export const LANGUAGES: Record<
   cpp: {
     grammarUrl: '/grammars/tree-sitter-cpp.wasm',
     nodePackage: 'tree-sitter-cpp',
-    adapter: pythonToSyn,
+    adapter: cppToSyn,
   },
+  /**
+   * NOTE: java still points at the Python adapter as a PLACEHOLDER so the registry
+   * shape stays settled. It is NOT working — the real adapter is Plan 3 Task 2, and
+   * no Java option may be exposed to users before then.
+   */
   java: {
     grammarUrl: '/grammars/tree-sitter-java.wasm',
     nodePackage: 'tree-sitter-java',

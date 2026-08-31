@@ -1,5 +1,1490 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`cpp golden fixtures > matches the golden IR for 01-straight-line.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "swap(int*,int,int)#b0",
+          "target": "swap(int*,int,int)#exit",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "swap(int*,int,int)#entry",
+          "target": "swap(int*,int,int)#b0",
+        },
+      ],
+      "entryId": "swap(int*,int,int)#entry",
+      "exitCount": 1,
+      "id": "swap(int*,int,int)",
+      "nodes": [
+        {
+          "id": "swap(int*,int,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "swap(int*,int,int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int tmp = arr[i];",
+            "arr[i] = arr[j];",
+            "arr[j] = tmp;",
+          ],
+        },
+        {
+          "id": "swap(int*,int,int)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 02-if-else.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(int)/if@0/else#b0",
+          "target": "classify(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(int)/if@0/then#b0",
+          "target": "classify(int)#return-b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "classify(int)/if@0#cond-b0",
+          "target": "classify(int)/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "classify(int)/if@0#cond-b0",
+          "target": "classify(int)/if@0/then#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(int)#b0",
+          "target": "classify(int)/if@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "classify(int)#entry",
+          "target": "classify(int)#b0",
+        },
+      ],
+      "entryId": "classify(int)#entry",
+      "exitCount": 1,
+      "id": "classify(int)",
+      "nodes": [
+        {
+          "id": "classify(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "classify(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int sign = 0;",
+            "int scale = 0;",
+          ],
+        },
+        {
+          "id": "classify(int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x > 0",
+          ],
+        },
+        {
+          "id": "classify(int)/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "sign = 1;",
+            "scale = 10;",
+          ],
+        },
+        {
+          "id": "classify(int)/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "sign = -1;",
+            "scale = 20;",
+          ],
+        },
+        {
+          "id": "classify(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return sign * scale;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 03-elif-chain.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "compare(int,int)/if@0/else/if@0/else/if@0/else#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "compare(int,int)/if@0/else/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "compare(int,int)/if@0/else/if@0#cond-b0",
+          "target": "compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "compare(int,int)/if@0/else/if@0#cond-b0",
+          "target": "compare(int,int)/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "compare(int,int)/if@0#cond-b0",
+          "target": "compare(int,int)/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "compare(int,int)/if@0#cond-b0",
+          "target": "compare(int,int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "compare(int,int)#entry",
+          "target": "compare(int,int)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "compare(int,int)#entry",
+      "exitCount": 4,
+      "id": "compare(int,int)",
+      "nodes": [
+        {
+          "id": "compare(int,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "compare(int,int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a < b",
+          ],
+        },
+        {
+          "id": "compare(int,int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+        {
+          "id": "compare(int,int)/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a > b",
+          ],
+        },
+        {
+          "id": "compare(int,int)/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 1;",
+          ],
+        },
+        {
+          "id": "compare(int,int)/if@0/else/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "a == b",
+          ],
+        },
+        {
+          "id": "compare(int,int)/if@0/else/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 0;",
+          ],
+        },
+        {
+          "id": "compare(int,int)/if@0/else/if@0/else/if@0/else#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -2;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 04-while-loop.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "gcd(int,int)/while@0#b1",
+          "target": "gcd(int,int)/while@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "gcd(int,int)/while@0#cond-b0",
+          "target": "gcd(int,int)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "gcd(int,int)/while@0#cond-b0",
+          "target": "gcd(int,int)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "gcd(int,int)#entry",
+          "target": "gcd(int,int)/while@0#cond-b0",
+        },
+      ],
+      "entryId": "gcd(int,int)#entry",
+      "exitCount": 1,
+      "id": "gcd(int,int)",
+      "nodes": [
+        {
+          "id": "gcd(int,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "gcd(int,int)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "b != 0",
+          ],
+        },
+        {
+          "id": "gcd(int,int)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int t = b;",
+            "b = a % b;",
+            "a = t;",
+          ],
+        },
+        {
+          "id": "gcd(int,int)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return a;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 05-for-range.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "for",
+          "source": "total(int)/for@0#b1",
+          "target": "total(int)/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "total(int)/for@0#cond-b0",
+          "target": "total(int)/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "total(int)/for@0#cond-b0",
+          "target": "total(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "total(int)#b0",
+          "target": "total(int)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "total(int)#entry",
+          "target": "total(int)#b0",
+        },
+      ],
+      "entryId": "total(int)#entry",
+      "exitCount": 1,
+      "id": "total(int)",
+      "nodes": [
+        {
+          "id": "total(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "total(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int acc = 0;",
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "total(int)/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < n; i++",
+          ],
+        },
+        {
+          "id": "total(int)/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "acc = acc + i;",
+          ],
+        },
+        {
+          "id": "total(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return acc;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 06-nested-loops.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "for",
+          "source": "bubbleSort(int*,int)/for@0/for@0/if@0/then#b0",
+          "target": "bubbleSort(int*,int)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bubbleSort(int*,int)/for@0/for@0/if@0#cond-b0",
+          "target": "bubbleSort(int*,int)/for@0/for@0/if@0/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "bubbleSort(int*,int)/for@0/for@0/if@0#cond-b0",
+          "target": "bubbleSort(int*,int)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bubbleSort(int*,int)/for@0/for@0#cond-b0",
+          "target": "bubbleSort(int*,int)/for@0/for@0/if@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "bubbleSort(int*,int)/for@0/for@0#cond-b0",
+          "target": "bubbleSort(int*,int)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "bubbleSort(int*,int)/for@0#b1",
+          "target": "bubbleSort(int*,int)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "bubbleSort(int*,int)/for@0#cond-b0",
+          "target": "bubbleSort(int*,int)/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "bubbleSort(int*,int)/for@0#cond-b0",
+          "target": "bubbleSort(int*,int)#exit",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "bubbleSort(int*,int)#b0",
+          "target": "bubbleSort(int*,int)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "bubbleSort(int*,int)#entry",
+          "target": "bubbleSort(int*,int)#b0",
+        },
+      ],
+      "entryId": "bubbleSort(int*,int)#entry",
+      "exitCount": 1,
+      "id": "bubbleSort(int*,int)",
+      "nodes": [
+        {
+          "id": "bubbleSort(int*,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "bubbleSort(int*,int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "bubbleSort(int*,int)/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < n; i++",
+          ],
+        },
+        {
+          "id": "bubbleSort(int*,int)/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int j = 0;",
+          ],
+        },
+        {
+          "id": "bubbleSort(int*,int)/for@0/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "j < n - i - 1; j++",
+          ],
+        },
+        {
+          "id": "bubbleSort(int*,int)/for@0/for@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[j] > arr[j + 1]",
+          ],
+        },
+        {
+          "id": "bubbleSort(int*,int)/for@0/for@0/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "int tmp = arr[j];",
+            "arr[j] = arr[j + 1];",
+            "arr[j + 1] = tmp;",
+          ],
+        },
+        {
+          "id": "bubbleSort(int*,int)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 07-break-continue.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "continue",
+          "label": "continue",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0/then#continue-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0#cond-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0/then#continue-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0#cond-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1/then#b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1/then#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1/then#break-b1",
+          "target": "firstEvenAfter(const std::vector<int>&,int)#return-b1",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1#cond-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1#cond-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0#cond-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "firstEvenAfter(const std::vector<int>&,int)/foreach@0#cond-b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "firstEvenAfter(const std::vector<int>&,int)#b0",
+          "target": "firstEvenAfter(const std::vector<int>&,int)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "firstEvenAfter(const std::vector<int>&,int)#entry",
+          "target": "firstEvenAfter(const std::vector<int>&,int)#b0",
+        },
+      ],
+      "entryId": "firstEvenAfter(const std::vector<int>&,int)#entry",
+      "exitCount": 1,
+      "id": "firstEvenAfter(const std::vector<int>&,int)",
+      "nodes": [
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int found = -1;",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "x in xs",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x <= floor",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@0/then#continue-b0",
+          "kind": "basic",
+          "statements": [
+            "continue",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x % 2 == 0",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1/then#b0",
+          "kind": "basic",
+          "statements": [
+            "found = x;",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)/foreach@0/if@1/then#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "firstEvenAfter(const std::vector<int>&,int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return found;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 08-loop-with-flag.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "find(const std::vector<int>&,int)/for@0/if@0/then#b0",
+          "target": "find(const std::vector<int>&,int)/for@0/if@0/then#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "find(const std::vector<int>&,int)/for@0/if@0/then#break-b1",
+          "target": "find(const std::vector<int>&,int)/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "find(const std::vector<int>&,int)/for@0/if@0#cond-b0",
+          "target": "find(const std::vector<int>&,int)/for@0/if@0/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "find(const std::vector<int>&,int)/for@0/if@0#cond-b0",
+          "target": "find(const std::vector<int>&,int)/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "find(const std::vector<int>&,int)/for@0#cond-b0",
+          "target": "find(const std::vector<int>&,int)/for@0/if@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "find(const std::vector<int>&,int)/for@0#cond-b0",
+          "target": "find(const std::vector<int>&,int)/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "find(const std::vector<int>&,int)/if@0#cond-b0",
+          "target": "find(const std::vector<int>&,int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "find(const std::vector<int>&,int)/if@0#cond-b0",
+          "target": "find(const std::vector<int>&,int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "find(const std::vector<int>&,int)#b0",
+          "target": "find(const std::vector<int>&,int)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "find(const std::vector<int>&,int)#entry",
+          "target": "find(const std::vector<int>&,int)#b0",
+        },
+      ],
+      "entryId": "find(const std::vector<int>&,int)#entry",
+      "exitCount": 2,
+      "id": "find(const std::vector<int>&,int)",
+      "nodes": [
+        {
+          "id": "find(const std::vector<int>&,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int found = -1;",
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < (int)xs.size(); i++",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)/for@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "xs[i] == target",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)/for@0/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "found = i;",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)/for@0/if@0/then#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "found < 0",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+        {
+          "id": "find(const std::vector<int>&,int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return found;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 09-multi-return.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "boundsCheck(const std::vector<int>&,int)/if@0#cond-b0",
+          "target": "boundsCheck(const std::vector<int>&,int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "boundsCheck(const std::vector<int>&,int)/if@0#cond-b0",
+          "target": "boundsCheck(const std::vector<int>&,int)/if@1#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "boundsCheck(const std::vector<int>&,int)/if@1#cond-b0",
+          "target": "boundsCheck(const std::vector<int>&,int)/if@1/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "boundsCheck(const std::vector<int>&,int)/if@1#cond-b0",
+          "target": "boundsCheck(const std::vector<int>&,int)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "boundsCheck(const std::vector<int>&,int)#entry",
+          "target": "boundsCheck(const std::vector<int>&,int)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "boundsCheck(const std::vector<int>&,int)#entry",
+      "exitCount": 3,
+      "id": "boundsCheck(const std::vector<int>&,int)",
+      "nodes": [
+        {
+          "id": "boundsCheck(const std::vector<int>&,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "boundsCheck(const std::vector<int>&,int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i < 0",
+          ],
+        },
+        {
+          "id": "boundsCheck(const std::vector<int>&,int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+        {
+          "id": "boundsCheck(const std::vector<int>&,int)/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i >= (int)arr.size()",
+          ],
+        },
+        {
+          "id": "boundsCheck(const std::vector<int>&,int)/if@1/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -2;",
+          ],
+        },
+        {
+          "id": "boundsCheck(const std::vector<int>&,int)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return arr[i];",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 10-try-catch.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "exception",
+          "label": "exception",
+          "source": "readCount(const std::string&)/try@0#b0",
+          "target": "readCount(const std::string&)/try@0/catch-0#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "readCount(const std::string&)/try@0#b0",
+          "target": "readCount(const std::string&)/try@0#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "readCount(const std::string&)#b0",
+          "target": "readCount(const std::string&)/try@0#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "readCount(const std::string&)#entry",
+          "target": "readCount(const std::string&)#b0",
+        },
+      ],
+      "entryId": "readCount(const std::string&)#entry",
+      "exitCount": 2,
+      "id": "readCount(const std::string&)",
+      "nodes": [
+        {
+          "id": "readCount(const std::string&)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "readCount(const std::string&)#b0",
+          "kind": "basic",
+          "statements": [
+            "std::ifstream* handle = nullptr;",
+          ],
+        },
+        {
+          "id": "readCount(const std::string&)/try@0#b0",
+          "kind": "basic",
+          "statements": [
+            "handle = new std::ifstream(path);",
+          ],
+        },
+        {
+          "id": "readCount(const std::string&)/try@0#return-b1",
+          "kind": "return",
+          "statements": [
+            "return countBytes(handle);",
+          ],
+        },
+        {
+          "id": "readCount(const std::string&)/try@0/catch-0#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 0;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 11-recursion.cpp 1`] = `
+{
+  "callEdges": [
+    {
+      "from": "fib(int)",
+      "to": "fib(int)",
+    },
+  ],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "fib(int)/if@0#cond-b0",
+          "target": "fib(int)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "fib(int)/if@0#cond-b0",
+          "target": "fib(int)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "fib(int)#entry",
+          "target": "fib(int)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "fib(int)#entry",
+      "exitCount": 2,
+      "id": "fib(int)",
+      "nodes": [
+        {
+          "id": "fib(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "fib(int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "n < 2",
+          ],
+        },
+        {
+          "id": "fib(int)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return n;",
+          ],
+        },
+        {
+          "id": "fib(int)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return fib(n - 1) + fib(n - 2);",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 12-binary-search.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0/else#b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0/then#b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0/if@0#cond-b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0/if@0#cond-b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(const std::vector<int>&,int)/while@0#b1",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0#cond-b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(const std::vector<int>&,int)/while@0#cond-b0",
+          "target": "binarySearch(const std::vector<int>&,int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(const std::vector<int>&,int)#b0",
+          "target": "binarySearch(const std::vector<int>&,int)/while@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(const std::vector<int>&,int)#entry",
+          "target": "binarySearch(const std::vector<int>&,int)#b0",
+        },
+      ],
+      "entryId": "binarySearch(const std::vector<int>&,int)#entry",
+      "exitCount": 2,
+      "id": "binarySearch(const std::vector<int>&,int)",
+      "nodes": [
+        {
+          "id": "binarySearch(const std::vector<int>&,int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int lo = 0;",
+            "int hi = (int)arr.size() - 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "lo <= hi",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "int mid = (lo + hi) / 2;",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] == target",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return mid;",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] < target",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "lo = mid + 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)/while@0/if@0/else/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "hi = mid - 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(const std::vector<int>&,int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 13-goto.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "goto top",
+          "source": "countUp(int)/if@0/then#goto-b0",
+          "target": "countUp(int)#b1",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "countUp(int)/if@0#cond-b0",
+          "target": "countUp(int)/if@0/then#goto-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "countUp(int)/if@0#cond-b0",
+          "target": "countUp(int)#return-b2",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "countUp(int)#b0",
+          "target": "countUp(int)#b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "countUp(int)#b1",
+          "target": "countUp(int)/if@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "countUp(int)#entry",
+          "target": "countUp(int)#b0",
+        },
+      ],
+      "entryId": "countUp(int)#entry",
+      "exitCount": 1,
+      "id": "countUp(int)",
+      "nodes": [
+        {
+          "id": "countUp(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "countUp(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int i = 0;",
+          ],
+        },
+        {
+          "id": "countUp(int)#b1",
+          "kind": "basic",
+          "statements": [
+            "i = i + 1;",
+          ],
+        },
+        {
+          "id": "countUp(int)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "i < n",
+          ],
+        },
+        {
+          "id": "countUp(int)/if@0/then#goto-b0",
+          "kind": "basic",
+          "statements": [
+            "goto top;",
+          ],
+        },
+        {
+          "id": "countUp(int)#return-b2",
+          "kind": "return",
+          "statements": [
+            "return i;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
+exports[`cpp golden fixtures > matches the golden IR for 14-switch-fallthrough.cpp 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(int)/switch@0/case-1#b0",
+          "target": "describe(int)/switch@0/case-2#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(int)/switch@0/case-2#b0",
+          "target": "describe(int)/switch@0/case-2#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "describe(int)/switch@0/case-2#break-b1",
+          "target": "describe(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(int)/switch@0/case-3#b0",
+          "target": "describe(int)/switch@0/case-3#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "describe(int)/switch@0/case-3#break-b1",
+          "target": "describe(int)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(int)/switch@0/case-default#b0",
+          "target": "describe(int)#return-b1",
+        },
+        {
+          "kind": "case",
+          "label": "case 1",
+          "source": "describe(int)/switch@0#disc-b0",
+          "target": "describe(int)/switch@0/case-1#b0",
+        },
+        {
+          "kind": "case",
+          "label": "case 2",
+          "source": "describe(int)/switch@0#disc-b0",
+          "target": "describe(int)/switch@0/case-2#b0",
+        },
+        {
+          "kind": "case",
+          "label": "case 3",
+          "source": "describe(int)/switch@0#disc-b0",
+          "target": "describe(int)/switch@0/case-3#b0",
+        },
+        {
+          "kind": "default",
+          "label": "default",
+          "source": "describe(int)/switch@0#disc-b0",
+          "target": "describe(int)/switch@0/case-default#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(int)#b0",
+          "target": "describe(int)/switch@0#disc-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(int)#entry",
+          "target": "describe(int)#b0",
+        },
+      ],
+      "entryId": "describe(int)#entry",
+      "exitCount": 1,
+      "id": "describe(int)",
+      "nodes": [
+        {
+          "id": "describe(int)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "describe(int)#b0",
+          "kind": "basic",
+          "statements": [
+            "int r = 0;",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0#disc-b0",
+          "kind": "switch",
+          "statements": [
+            "v",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0/case-1#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 1;",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0/case-2#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 2;",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0/case-2#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0/case-3#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 3;",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0/case-3#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "describe(int)/switch@0/case-default#b0",
+          "kind": "basic",
+          "statements": [
+            "r = 9;",
+          ],
+        },
+        {
+          "id": "describe(int)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return r;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "cpp",
+}
+`;
+
 exports[`python golden fixtures > matches the golden IR for 01-straight-line.py 1`] = `
 {
   "callEdges": [],
