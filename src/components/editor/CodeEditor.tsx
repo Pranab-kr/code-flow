@@ -28,9 +28,10 @@ interface Props {
   /** 1-based line to scroll into view — set when a diagram node is clicked. */
   revealLine?: number;
   onChange: (value: string) => void;
+  onPaste?: (value: string) => void;
 }
 
-export function CodeEditor({ value, language, theme, revealLine, onChange }: Props) {
+export function CodeEditor({ value, language, theme, revealLine, onChange, onPaste }: Props) {
   const ref = useRef<ReactCodeMirrorRef>(null);
 
   useEffect(() => {
@@ -53,7 +54,15 @@ export function CodeEditor({ value, language, theme, revealLine, onChange }: Pro
       height="100%"
       style={{ height: '100%', fontSize: '13px' }}
       theme={theme === 'dark' ? oneDark : 'light'}
-      extensions={EXTENSIONS[language]()}
+      extensions={[
+        ...EXTENSIONS[language](),
+        EditorView.domEventHandlers({
+          paste(event) {
+            onPaste?.(event.clipboardData?.getData('text/plain') ?? '');
+            return false;
+          },
+        }),
+      ]}
       onChange={onChange}
       basicSetup={{ lineNumbers: true, foldGutter: true, highlightActiveLine: true }}
       aria-label="Code editor"

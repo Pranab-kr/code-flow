@@ -48,10 +48,10 @@ export default async function ProjectPage({
   // cannot cross the server/client boundary -- React can only serialize a
   // reference to a "use server" function, so wrapping one in
   // `(s) => save(s, language)` throws at render and 500s the whole page.
-  // Both the project id and the language are bound, leaving the client a
-  // one-argument function that takes only the source.
+  // Only the project id is bound. Language travels with source so paste detection
+  // can atomically update the project and its new snapshot.
   const language = project.language as Language;
-  const save = saveSource.bind(null, project.id, language);
+  const save = saveSource.bind(null, project.id);
   const moveNode = saveOverride.bind(null, project.id);
   const retry = retryAnalysis.bind(null, project.id);
 

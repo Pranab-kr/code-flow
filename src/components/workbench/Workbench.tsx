@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useParse } from '@/lib/useParse';
 import { useSnapshotStatus } from '@/lib/useSnapshotStatus';
+import { detectLanguage } from '@/lib/ir/detect';
 import { describeStatus, type SaveState } from './status';
 import type { Language } from '@/lib/ir/types';
 import './workbench.css';
@@ -30,6 +31,7 @@ interface Props {
    */
   onSave?: (
     source: string,
+    language: Language,
   ) => Promise<{ ok?: true; error?: string; snapshotId?: string }>;
   /** Persist one dragged node. Absent in the demo, where nothing is stored. */
   onNodeMoved?: (nodeId: string, x: number, y: number) => Promise<{ error?: string }>;
@@ -49,6 +51,8 @@ export function Workbench({
   onRetry,
 }: Props) {
   const [source, setSource] = useState(initialSource);
+  const [selectedLanguage, setSelectedLanguage] = useState(language);
+  const [detection, setDetection] = useState<string | null>(null);
   const [revealLine, setRevealLine] = useState<number | undefined>();
   const [activeFn, setActiveFn] = useState(0);
   const [pane, setPane] = useState<Pane>('diagram');
@@ -58,11 +62,46 @@ export function Workbench({
   // Follows the snapshot the page loaded with until an edit mints a newer one.
   const [snapshotId, setSnapshotId] = useState(initialSnapshotId);
 
-  const { ir, layouts, status, error } = useParse(source, language);
+  const { ir, layouts, status, error } = useParse(source, selectedLanguage);
   const server = useSnapshotStatus(snapshotId);
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingSource = useRef(source);
+  const pendingLanguage = useRef(selectedLanguage);
+
+  const handlePaste = useCallback((text: string) => {
+    const detected = detectLanguage(text);
+    if (!detected) return;
+    pendingLanguage.current = detected;
+    setSelectedLanguage(detected);
+    const label = detected === 'cpp' ? 'C++' : detected[0].toUpperCase() + detected.slice(1);
+    setDetection(`Detected ${label} — change it if that's wrong.`);
+  }, []);
+
+  const scheduleSave = useCallback(() => {
+    if (!onSave) return;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setSaveState('saving');
+      void onSave(pendingSource.current, pendingLanguage.current).then((result) => {
+        if (result?.error) {
+          setSaveState('error');
+          setSaveError(result.error);
+        } else {
+          setSaveState('saved');
+          setSaveError(null);
+          if (result?.snapshotId) setSnapshotId(result.snapshotId);
+        }
+      });
+    }, SAVE_DEBOUNCE_MS);
+  }, [onSave]);
+
+  const selectLanguage = useCallback((next: Language) => {
+    pendingLanguage.current = next;
+    setSelectedLanguage(next);
+    setDetection(null);
+    scheduleSave();
+  }, [scheduleSave]);
 
   // Persist on idle, not on every keystroke. The local parse already keeps the
   // diagram current, so a save is about durability, not display.
@@ -70,26 +109,9 @@ export function Workbench({
     (next: string) => {
       setSource(next);
       pendingSource.current = next;
-      if (!onSave) return;
-
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        setSaveState('saving');
-        void onSave(pendingSource.current).then((result) => {
-          if (result?.error) {
-            setSaveState('error');
-            setSaveError(result.error);
-          } else {
-            setSaveState('saved');
-            setSaveError(null);
-            // Point the status feed at the row this edit created. Without this the
-            // indicator would keep reporting a snapshot several edits stale.
-            if (result?.snapshotId) setSnapshotId(result.snapshotId);
-          }
-        });
-      }, SAVE_DEBOUNCE_MS);
+      scheduleSave();
     },
-    [onSave],
+    [scheduleSave],
   );
 
   useEffect(() => {
@@ -148,6 +170,22 @@ export function Workbench({
       <header className="wb__bar">
         <span className="wb__brand">{title ?? 'code-flow'}</span>
 
+        <label className="wb__language-label">
+          <span className="wb__sr-only">Language</span>
+          <select
+            className="wb__language"
+            value={selectedLanguage}
+            onChange={(event) => selectLanguage(event.target.value as Language)}
+            aria-label="Language"
+          >
+            <option value="python">Python</option>
+            <option value="cpp">C++</option>
+            <option value="java">Java</option>
+          </select>
+        </label>
+
+        {detection && <span className="wb__detected" role="status">{detection}</span>}
+
         {ir && ir.functions.length > 0 && (
           <nav className="wb__tabs" role="tablist" aria-label="Functions">
             {ir.functions.map((f, i) => (
@@ -198,10 +236,11 @@ export function Workbench({
         <section className="wb__editor" aria-label="Code">
           <CodeEditor
             value={source}
-            language={language}
+            language={selectedLanguage}
             theme="dark"
             revealLine={revealLine}
             onChange={onChange}
+            onPaste={handlePaste}
           />
         </section>
 

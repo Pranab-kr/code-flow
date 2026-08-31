@@ -15,9 +15,9 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
-| **Tests** | 219 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Tests** | 223 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 3 Task 4:** language detection and honest picker wiring. |
+| **Next action** | **Plan 4: export and sticky notes.** Plan 3 is complete; first manually smoke-test all three picker paths in a browser. |
 
 ---
 
@@ -61,9 +61,9 @@ Authentication → Sign In / Providers → Confirm email.
 
 ## Next up
 
-Continue Plan 3 Task 4 in `docs/superpowers/plans/2026-09-01-p1-plan3-cpp-java.md`:
-test-drive `detectLanguage(source)`, wire paste detection into the workbench/project creation
-flow, then verify Python, C++, and Java diagrams by hand.
+Plan 3 is complete. Before starting Plan 4, manually smoke-test project creation and pasted
+Python, C++, and Java in the browser; automated detector, adapter, isomorphism, build, and
+persistence typing checks are green, but this session did not run an interactive browser.
 
 ---
 
@@ -101,7 +101,7 @@ database, but not yet through a browser.
 | 1 | C++ adapter, goto/labels, switch fallthrough, 14 goldens | ✅ `4648666` |
 | 2 | Java adapter, labeled jumps, arrow/colon switches, 13 goldens | ✅ worktree |
 | 3 | Cross-language isomorphism for four algorithms | ✅ 12 fixtures + 4 passing comparisons |
-| 4 | Language detection and honest picker wiring | **NEXT** |
+| 4 | Language detection and honest picker wiring | ✅ detector + creation/workbench pickers + persisted language |
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -381,6 +381,13 @@ golden now enforce the correct target.
 `src/lib/ir/isomorphism.test.ts` compares binary search, BFS, quicksort, and Fibonacci across
 Python, C++, and Java. All four comparisons pass without adapter changes: node kinds, edge
 kinds, and exit counts match across all three languages.
+
+### 2026-09-01 — Language changes persist with the source snapshot
+Paste detection is conservative: strong Python, C++, or Java evidence selects that language
+and announces the choice; ambiguous text leaves the current selection unchanged. A language
+switch is not client-only state. `saveSource` receives the selected language with the source,
+validates it, writes it to the new snapshot, and updates `projects.language` in the same save
+path so parsing, server analysis, listings, and reloads cannot disagree.
 
 ---
 

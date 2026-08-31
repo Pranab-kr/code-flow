@@ -29,14 +29,16 @@ export function NewProjectForm() {
           placeholder="Binary search"
           disabled={pending}
         />
-        {/* Only Python is offered: the C++ and Java adapters land in Plan 3, and a
-            picker that lists a language it cannot parse is a lie. */}
-        <input type="hidden" name="language" value="python" />
+        <select className="pj__language" name="language" defaultValue="python" disabled={pending} aria-label="Language">
+          <option value="python">Python</option>
+          <option value="cpp">C++</option>
+          <option value="java">Java</option>
+        </select>
         <button className="pj__create" type="submit" disabled={pending}>
           {pending ? 'Creating…' : 'Create'}
         </button>
       </div>
-      <p className="pj__hint">Python for now. C++ and Java are next.</p>
+      <p className="pj__hint">Choose the language for the starter and diagram.</p>
       {error && (
         <p className="pj__error" role="alert">
           {error}

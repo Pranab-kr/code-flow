@@ -78,6 +78,16 @@
 }
 .pj__input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
 .pj__input:disabled { opacity: 0.6; }
+.pj__language {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-paper);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font: var(--text-sm) var(--font-mono);
+}
+.pj__language:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.pj__language:disabled { opacity: 0.6; }
 .pj__create {
   padding: var(--space-xs) var(--space-md);
   background: var(--color-accent);

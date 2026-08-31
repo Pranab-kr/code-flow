@@ -23,8 +23,6 @@ const STARTER: Record<Language, string> = {
             hi = mid - 1
     return -1
 `,
-  // cpp and java have no adapter yet (Plan 3). Their starters exist so the seed
-  // path is uniform, but the picker must not offer them until the adapters land.
   cpp: `int binary_search(int* arr, int n, int target) {
     int lo = 0;
     int hi = n - 1;
@@ -137,12 +135,13 @@ export async function createProject(formData: FormData): Promise<{ error?: strin
  * grounding now and execution traces in P3 — so it derives its own.
  */
 export async function saveSource(
-  // Order matters: .bind() fills arguments left to right, so the two values the
-  // server pins must come FIRST, leaving the client a one-arg function.
+  // The project id is pinned server-side. Language travels with source because a
+  // paste can switch both, and the snapshot must record the parser actually used.
   projectId: string,
   language: string,
   source: string,
 ): Promise<{ ok?: true; error?: string; snapshotId?: string }> {
+  if (!isLanguage(language)) return { error: 'Choose Python, C++, or Java.' };
   if (source.length > MAX_SOURCE_BYTES) {
     return { error: `That is over the ${MAX_SOURCE_BYTES / 1000}KB limit for one snapshot.` };
   }
@@ -165,7 +164,11 @@ export async function saveSource(
 
   await supabase
     .from('projects')
-    .update({ current_snapshot_id: snapshot.id, updated_at: new Date().toISOString() })
+    .update({
+      current_snapshot_id: snapshot.id,
+      language,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', projectId);
 
   await queueAnalysis(snapshot.id, projectId);

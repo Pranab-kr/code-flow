@@ -22,6 +22,18 @@
   white-space: nowrap;
 }
 
+.wb__language {
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font: var(--text-xs) var(--font-mono);
+}
+.wb__language:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.wb__detected { color: var(--color-ink-3); font: var(--text-xs) var(--font-mono); }
+.wb__sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+
 .wb__tabs {
   display: flex;
   gap: var(--space-2xs);
@@ -136,6 +148,7 @@
 }
 
 @media (max-width: 767px) {
+  .wb__detected { display: none; }
   .wb__panes {
     grid-template-columns: minmax(0, 1fr);
   }
