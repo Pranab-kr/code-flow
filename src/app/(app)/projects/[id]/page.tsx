@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import { Workbench } from '@/components/workbench/Workbench';
 import { saveSource } from '../actions';
+import { saveOverride } from './layout-actions';
 import type { Language } from '@/lib/ir/types';
 
 export default async function ProjectPage({
@@ -47,6 +48,7 @@ export default async function ProjectPage({
     source: string,
     language: string,
   ) => Promise<{ ok?: true; error?: string }>;
+  const moveNode = saveOverride.bind(null, project.id);
 
   return (
     <Workbench
@@ -54,6 +56,7 @@ export default async function ProjectPage({
       title={project.title}
       language={language}
       onSave={(source: string) => save(source, language)}
+      onNodeMoved={moveNode}
       initialSource={snapshot?.source ?? ''}
       initialOverrides={Object.fromEntries(
         (overrides ?? []).map((o) => [o.node_id, { x: o.x, y: o.y }]),

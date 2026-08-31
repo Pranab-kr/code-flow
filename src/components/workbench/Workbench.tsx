@@ -23,6 +23,8 @@ interface Props {
   initialOverrides?: Record<string, { x: number; y: number }>;
   /** Injected rather than imported, so this component stays usable without a database. */
   onSave?: (source: string) => Promise<{ ok?: true; error?: string }>;
+  /** Persist one dragged node. Absent in the demo, where nothing is stored. */
+  onNodeMoved?: (nodeId: string, x: number, y: number) => Promise<{ error?: string }>;
 }
 
 export function Workbench({
@@ -32,6 +34,7 @@ export function Workbench({
   language = 'python',
   initialOverrides,
   onSave,
+  onNodeMoved,
 }: Props) {
   const [source, setSource] = useState(initialSource);
   const [revealLine, setRevealLine] = useState<number | undefined>();
@@ -75,6 +78,24 @@ export function Workbench({
       if (timer.current) clearTimeout(timer.current);
     };
   }, []);
+
+  // Positions the user has dragged this session, merged over what was loaded.
+  // Keeping them here means a re-parse cannot discard an unsaved drag.
+  const [positions, setPositions] = useState(initialOverrides ?? {});
+
+  const handleNodeMoved = useCallback(
+    (nodeId: string, x: number, y: number) => {
+      setPositions((prev) => ({ ...prev, [nodeId]: { x, y } }));
+      if (!onNodeMoved) return;
+      void onNodeMoved(nodeId, x, y).then((result) => {
+        if (result?.error) {
+          setSaveState('error');
+          setSaveError(result.error);
+        }
+      });
+    },
+    [onNodeMoved],
+  );
 
   const fn = ir?.functions[activeFn] ?? ir?.functions[0];
   const layout = fn ? layouts[fn.id] : undefined;
@@ -151,8 +172,9 @@ export function Workbench({
             <FlowCanvas
               graph={fn}
               layout={layout}
-              overrides={initialOverrides}
+              overrides={positions}
               onNodeClick={(line) => setRevealLine(line)}
+              onNodeMoved={onNodeMoved ? handleNodeMoved : undefined}
             />
           )}
 
