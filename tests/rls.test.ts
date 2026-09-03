@@ -168,6 +168,59 @@ describe('RLS isolation', () => {
     expect(data).toHaveLength(1);
   });
 
+  // ---- provider keys --------------------------------------------------------
+  // user_provider_keys has RLS enabled with NO policy: every client role is
+  // denied, and only the service-role client (server routes) may touch it.
+
+  it('no client can read provider keys, not even their own', async () => {
+    const { data } = await a.client.from('user_provider_keys').select('*');
+    expect(data).toEqual([]); // service-role only
+  });
+
+  it('no client can insert a provider key directly', async () => {
+    const { error } = await a.client
+      .from('user_provider_keys')
+      .insert({ user_id: a.userId, provider: 'openai', last4: '1234', ciphertext: 'x', iv: 'y' });
+    expect(error).not.toBeNull();
+  });
+
+  // ---- chat tables ----------------------------------------------------------
+  // chat_threads / chat_messages are owner-scoped through projects.user_id,
+  // like snapshots. (0006_chat.sql; snippet from the context-builder task.)
+
+  it("B cannot read A's chat threads", async () => {
+    const { data } = await b.client.from('chat_threads').select('*');
+    expect((data ?? []).filter((t) => t.project_id === projectA)).toEqual([]);
+  });
+
+  it("B cannot insert a chat thread into A's project", async () => {
+    const { error } = await b.client
+      .from('chat_threads')
+      .insert({ project_id: projectA, title: 'hijack' });
+    expect(error).not.toBeNull();
+  });
+
+  it("B cannot read or write A's chat messages", async () => {
+    const { data: thread, error: threadError } = await a.client
+      .from('chat_threads')
+      .insert({ project_id: projectA, title: 'A thread' })
+      .select('id')
+      .single();
+    expect(threadError).toBeNull();
+    if (!thread) throw new Error('seed chat thread');
+    await a.client
+      .from('chat_messages')
+      .insert({ thread_id: thread.id, role: 'user', content: 'why does this loop terminate?' });
+
+    const { data: seen } = await b.client.from('chat_messages').select('*');
+    expect((seen ?? []).filter((m) => m.thread_id === thread.id)).toEqual([]);
+
+    const { error } = await b.client
+      .from('chat_messages')
+      .insert({ thread_id: thread.id, role: 'user', content: 'forged' });
+    expect(error).not.toBeNull();
+  });
+
   // ---- positive path -------------------------------------------------------
   // Without these, every test above would also pass against a database that
   // denies everything, including to its rightful owner.
