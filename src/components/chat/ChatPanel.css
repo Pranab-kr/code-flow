@@ -1,0 +1,337 @@
+/* Chat panel: tokens only. All 8 states live on the send button
+ * (default, hover, focus-visible, active, disabled, loading, error, success);
+ * the error box and setup prompt are the error state made words. */
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-paper);
+}
+
+.chat__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+
+.chat__title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+}
+
+.chat__context {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink-3);
+}
+
+.chat__node {
+  color: var(--color-accent);
+}
+
+.chat__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.chat__select {
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font: var(--text-xs) var(--font-mono);
+  cursor: pointer;
+}
+.chat__select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.chat__select:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.chat__log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+}
+
+.chat__msg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.chat__speaker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.chat__msg[data-role='user'] .chat__text {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat__msg[data-role='assistant'] .chat__text {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat__typing {
+  color: var(--color-ink-3);
+}
+
+.chat__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.chat__emptyline {
+  margin: 0;
+  max-width: 38ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.chat__starters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.chat__starter {
+  text-align: left;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.chat__starter:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+}
+.chat__starter:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.chat__starter:active:not(:disabled) {
+  color: var(--color-accent);
+}
+.chat__starter:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.chat__error {
+  margin: 0 var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-left: 3px solid var(--color-danger);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.chat__errortext,
+.chat__setup {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  line-height: 1.6;
+}
+
+.chat__setuplink {
+  color: var(--color-danger);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.chat__setuplink:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.chat__retry {
+  align-self: flex-start;
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chat__retry:hover {
+  color: var(--color-ink);
+  border-color: var(--color-node-brdr);
+}
+.chat__retry:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.chat__retry:active {
+  color: var(--color-accent);
+}
+
+.chat__status {
+  margin: 0;
+  padding: var(--space-2xs) var(--space-sm) 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-3);
+}
+
+.chat__form {
+  display: flex;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+
+.chat__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-paper-2);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+}
+.chat__input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+.chat__input:disabled {
+  opacity: 0.6;
+}
+
+.chat__send,
+.chat__stop {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  cursor: pointer;
+  white-space: nowrap; /* gate 49: never two-line clickable text */
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+/* 1-4: default, hover, focus-visible, active */
+.chat__send:hover:not(:disabled),
+.chat__stop:hover:not(:disabled) {
+  background: var(--color-paper-3);
+  border-color: var(--color-node-brdr);
+  color: var(--color-ink);
+}
+.chat__send:focus-visible,
+.chat__stop:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.chat__send:active:not(:disabled),
+.chat__stop:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* 5: disabled — empty input, streaming, or no saved project */
+.chat__send:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* 6: loading — the button is also disabled while streaming; this marks WHY */
+.chat__send[data-state='loading'] {
+  cursor: progress;
+  color: var(--color-warn);
+  border-color: var(--color-warn);
+}
+
+/* 7: error — the box above says it in words; the button wears the tone */
+.chat__send[data-state='error'] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* 8: success — silent confirmation; the arriving answer is the real one */
+.chat__send[data-state='success'] {
+  border-color: var(--color-ok);
+  color: var(--color-ok);
+}
+
+.chat__notice {
+  margin: 0;
+  padding: var(--space-sm);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat__send,
+  .chat__stop,
+  .chat__starter {
+    transition: opacity 150ms var(--ease-out);
+  }
+  .chat__send:active:not(:disabled),
+  .chat__stop:active:not(:disabled) {
+    transform: none;
+  }
+}

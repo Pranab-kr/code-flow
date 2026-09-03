@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CodeEditor } from '@/components/editor/CodeEditor';
 import { FlowCanvas } from '@/components/canvas/FlowCanvas';
+import { ChatPanel } from '@/components/chat/ChatPanel';
 import { ExportMenu, type ExportRequest } from '@/components/export/ExportMenu';
 import { toReactFlow } from '@/components/canvas/toReactFlow';
 import { graphToSvg } from '@/lib/export/toSvg';
@@ -16,12 +17,22 @@ import { useSnapshotStatus } from '@/lib/useSnapshotStatus';
 import { detectLanguage } from '@/lib/ir/detect';
 import { shiftAnchored, type Annotation } from '@/lib/annotations';
 import { describeStatus, type SaveState } from './status';
-import type { Language } from '@/lib/ir/types';
+import type { Language, ProgramIR } from '@/lib/ir/types';
 import './workbench.css';
 
-type Pane = 'code' | 'diagram';
+type Pane = 'code' | 'diagram' | 'ask';
 
 const SAVE_DEBOUNCE_MS = 1500;
+
+/** Display label for a structural node id, so "this node" is answerable. */
+function nodeLabel(ir: ProgramIR | null, nodeId: string): string | null {
+  if (!ir) return null;
+  for (const fn of ir.functions) {
+    const node = fn.nodes.find((n) => n.id === nodeId);
+    if (node) return node.label;
+  }
+  return null;
+}
 
 interface Props {
   initialSource: string;
@@ -79,6 +90,11 @@ export function Workbench({
   const [revealLine, setRevealLine] = useState<number | undefined>();
   const [activeFn, setActiveFn] = useState(0);
   const [pane, setPane] = useState<Pane>('diagram');
+  // The Ask pane exists only for persisted projects; the demo has no project
+  // id, so there is nothing to ground a question in and nowhere to send it.
+  const [askOpen, setAskOpen] = useState(true);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -224,6 +240,19 @@ export function Workbench({
 
   const fn = ir?.functions[activeFn] ?? ir?.functions[0];
   const layout = fn ? layouts[fn.id] : undefined;
+
+  // A canvas click still reveals the source line AND grounds the Ask pane:
+  // the selected node's id travels with the next question.
+  const handleNodeClick = useCallback(
+    (line?: number, nodeId?: string) => {
+      setRevealLine(line);
+      if (nodeId) {
+        setSelectedNodeId(nodeId);
+        setSelectedLabel(nodeLabel(ir, nodeId));
+      }
+    },
+    [ir],
+  );
 
   const handleNodeMoved = useCallback(
     (nodeId: string, x: number, y: number) => {
@@ -388,6 +417,16 @@ export function Workbench({
         </div>
 
         <ThemeToggle />
+        {projectId && (
+          <button
+            type="button"
+            className="wb__asktoggle"
+            aria-expanded={askOpen}
+            onClick={() => setAskOpen((v) => !v)}
+          >
+            Ask
+          </button>
+        )}
         <ExportMenu
           canExport={canExport}
           whyDisabled={exportBlockReason}
@@ -400,7 +439,11 @@ export function Workbench({
         </button>
       </header>
 
-      <div className="wb__panes" data-pane={pane}>
+      <div
+        className={projectId ? 'wb__panes wb__panes--with-chat' : 'wb__panes'}
+        data-pane={pane}
+        data-ask={askOpen ? 'open' : 'closed'}
+      >
         <section className="wb__editor" aria-label="Code">
           <CodeEditor
             value={source}
@@ -427,7 +470,7 @@ export function Workbench({
               layout={layout}
               overrides={positions}
               annotations={notes}
-              onNodeClick={(line) => setRevealLine(line)}
+              onNodeClick={handleNodeClick}
               onNodeMoved={onNodeMoved ? handleNodeMoved : undefined}
               onAnnotationMoved={handleNoteMoved}
               onAnnotationSave={handleNoteSave}
@@ -447,6 +490,16 @@ export function Workbench({
             <p className="wb__notice">The editor is empty. Paste some code to begin.</p>
           )}
         </section>
+
+        {projectId && (
+          <section className="wb__ask" aria-label="Ask about this code">
+            <ChatPanel
+              projectId={projectId}
+              selectedNodeId={selectedNodeId}
+              selectedLabel={selectedLabel}
+            />
+          </section>
+        )}
       </div>
 
       <nav className="wb__mobile-tabs" aria-label="View">
@@ -456,6 +509,17 @@ export function Workbench({
         <button onClick={() => setPane('diagram')} aria-pressed={pane === 'diagram'}>
           Diagram
         </button>
+        {projectId && (
+          <button
+            onClick={() => {
+              setPane('ask');
+              setAskOpen(true);
+            }}
+            aria-pressed={pane === 'ask'}
+          >
+            Ask
+          </button>
+        )}
       </nav>
     </div>
   );

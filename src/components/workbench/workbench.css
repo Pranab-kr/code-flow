@@ -117,7 +117,8 @@
 
 /* Sticky-note affordance: the same pill treatment as the retry button, so the
  * toolbar stays one family. Tokens only. */
-.wb__addnote {
+.wb__addnote,
+.wb__asktoggle {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   padding: var(--space-2xs) var(--space-xs);
@@ -128,16 +129,25 @@
   cursor: pointer;
   white-space: nowrap; /* gate 49: never two-line clickable text */
 }
-.wb__addnote:hover:not(:disabled) {
+.wb__addnote:hover:not(:disabled),
+.wb__asktoggle:hover:not(:disabled) {
   color: var(--color-ink);
   border-color: var(--color-node-brdr);
 }
-.wb__addnote:focus-visible {
+.wb__addnote:focus-visible,
+.wb__asktoggle:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
-.wb__addnote:active:not(:disabled) {
+.wb__addnote:active:not(:disabled),
+.wb__asktoggle:active:not(:disabled) {
   color: var(--color-accent);
+}
+
+/* An expanded Ask toggle reads as active — the pane it controls is visible. */
+.wb__asktoggle[aria-expanded='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-rule);
 }
 
 /* Canvas dominant: it is why someone opened the app */
@@ -158,6 +168,26 @@
   position: relative;
   background: var(--color-canvas);
   min-width: 0;
+}
+
+/* Third pane: the Ask panel. Present only for persisted projects, collapsed
+ * via the header toggle (desktop) or the tab bar (mobile). Stays mounted
+ * while hidden so the conversation survives a collapse. */
+.wb__panes--with-chat {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 6fr) minmax(0, 4fr);
+}
+.wb__panes--with-chat[data-ask='closed'] {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+}
+.wb__panes--with-chat[data-ask='closed'] .wb__ask {
+  display: none;
+}
+.wb__ask {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-left: var(--rule-hair) solid var(--color-rule);
 }
 
 .wb__notice {
@@ -182,6 +212,18 @@
   }
   .wb__panes[data-pane='diagram'] .wb__editor {
     display: none;
+  }
+  /* Ask is the third mobile tab: it owns the screen exactly like the others. */
+  .wb__panes[data-pane='ask'] .wb__editor,
+  .wb__panes[data-pane='ask'] .wb__canvas {
+    display: none;
+  }
+  .wb__ask {
+    display: none;
+    border-left: 0;
+  }
+  .wb__panes[data-pane='ask'] .wb__ask {
+    display: flex;
   }
   .wb__mobile-tabs {
     display: flex;
