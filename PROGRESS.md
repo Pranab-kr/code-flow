@@ -16,12 +16,12 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
 | **Plan 3** | **All 4 tasks done. Smoke-tested in a real browser 2026-09-01.** |
-| **Plan 4** | **All 4 tasks done** (SVG, raster, export UI, sticky notes). **Trap 12 FIXED 2026-09-03** (ElkEdge + SVG rhombus, eye-verified on `/demo`). Task 3 Step 5 file-format eye checks (2× PNG both themes, JPEG white, SVG at 400%, grayscale) still owed. |
+| **Plan 4** | **All 4 tasks done** (SVG, raster, export UI, sticky notes). **Trap 12 FIXED 2026-09-03** (ElkEdge + SVG rhombus, eye-verified on `/demo`). **Task 3 Step 5 eye checks DONE 2026-09-03**: 2× PNG dark + light sharp (true rhombi, legible labels), JPEG on explicit white (true-white bg), SVG at 400% (crisp vectors), grayscale (shape + label carry all meaning). No code change resulted. |
 | **Plan 5** | **All 4 tasks COMMITTED 2026-09-03** (vault `117bb04`, chat backend `2cf673f`, trap-12 `c5b0da8`, chat UI `aed893b`). **Migrations 0005/0006 applied 2026-09-03 via Supabase MCP; RLS 21/21; live vault round-trip proven.** Task 4 Step 5 hand verification with a real provider key still owed (devtools body check, selected-node grounding, wrong-key wording, log grep). |
 | **Plan 6** | **All 5 tasks done, committed 2026-09-03** (landing `c287e9b`, auth `b868232`, outline+a11y `16469b1`, E2E+slop `bbe46d2`). Map/Diagram + N13 (working palette) + Ft5, Aurora; axe 10/10 both themes; full slice E2E green incl. drag-survives-reload + PNG download; Lighthouse a11y 100/100/100 (`/`, `/login`, `/demo`, dev-mode). `.hallmark/log.json` deliberately one entry (Task 4 shipped no page structure — see decision log). |
 | **Tests** | 339 unit passing (+9 outline) · RLS 30/30 · E2E 13/13 (axe 10 + slice 3) · lint clean · `tsc --noEmit` clean · build succeeds · contrast 27/27 both themes |
 | **Blocked on** | Nothing. P1 is done. |
-| **Next action** | Write the real P2 spec from `docs/superpowers/specs/2026-09-03-code-flow-p2-stub.md`, then deploy this session's commits to `code-flow-beta.vercel.app` (Vercel auto-deploys on push — verify `/demo` outline toggle + export after). |
+| **Next action** | P2 is spec'd (`2026-09-03-code-flow-p2-javascript-design.md`, approved — JS-only, TS deferred, Go named next). Next: invoke writing-plans for the P2 implementation plan, then implement. Pushed through `185cf45`; prod `/demo` verified with Outline toggle (9 steps, 0 console errors). |
 
 ---
 
