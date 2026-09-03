@@ -16,10 +16,10 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
 | **Plan 3** | **All 4 tasks done. Smoke-tested in a real browser 2026-09-01.** |
-| **Plan 4** | Task 1 done (`graphToSvg` + 11 tests). Task 2 raster export next. |
-| **Tests** | 235 unit + 25 integration passing · lint clean · `tsc --noEmit` clean |
+| **Plan 4** | Tasks 1–3 done (SVG, raster, export UI). Task 4 sticky notes next. |
+| **Tests** | 261 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 4 Task 2: raster export** (`docs/superpowers/plans/2026-09-01-p1-plan4-export.md`). Still open before Task 3: the empty-canvas copy product call (trap 10b). |
+| **Next action** | **Plan 4 Task 4: sticky notes** (`docs/superpowers/plans/2026-09-01-p1-plan4-export.md`). Note: Task 3 Step 5 by-eye checks (2× PNG both themes, JPEG white, SVG at 400%, grayscale) still need a real browser — automated suite green, build green, not yet eye-verified. |
 
 ---
 
@@ -145,7 +145,9 @@ back edges dashed and pointing the right way.
 | Task | Deliverable | State |
 |---|---|---|
 | 1 | `graphToSvg` from the IR + tests | ✅ `111106b` (11 tests) |
-| 2 | Raster export (PNG/JPEG via canvas) | ⬜ **next** |
+| 2 | Raster export (PNG/JPEG via canvas) | ✅ `c795618` (10 tests) |
+| 3 | Export UI, 3 formats, all 8 states | ✅ `51221d0` (menu 8 tests + download 6 + tokens 2; Workbench wired) |
+| 4 | Sticky notes | ⬜ **next** |
 | 3 | Export UI, 3 formats, all 8 states | ⬜ |
 | 4 | Sticky notes | ⬜ |
 
@@ -483,6 +485,26 @@ with no layout argument. Two deliberate exceptions: `background: 'white'` emits 
 literally (an explicit user choice for slides, not a theme color — everything else is read
 from computed tokens), and kind captions (`if`/`switch`/`return`/`throw`/`while ↻`) are
 rendered in addition to shapes, matching `IRNodeView`.
+
+### 2026-09-03 — Trap 10b resolved via option (b): keep the blanking, fix the wording
+A deliberate Java-on-Python mismatch still clears the canvas, but the copy no longer claims
+"no functions found": with syntax errors it reads "Couldn't parse this as Java…", and the
+Export button is disabled with "The code doesn't parse as Java — fix the errors to export."
+Keeping the last good graph dimmed (option a) would have made Export ambiguous — exporting
+a stale diagram the screen is warning about. Revisit only with annotations (Task 4), where
+a dimmed-graph state earns its keep.
+
+### 2026-09-03 — Export presents JPEG once, as `.jpg`; no notes toggle until Task 4
+`exportFilename` writes `.jpg` for the single JPEG option — never a four-option menu. The
+ExportMenu has no "include sticky notes" toggle yet: Task 4 owns annotations, and a toggle
+wired to nothing would lie. Task 4 Step 3 adds it alongside `AnnotationNode`. Workbench
+passes dragged positions through `toReactFlow`, so the file matches the screen.
+
+### 2026-09-03 — Task 3 Step 5 by-eye checks are outstanding
+261 unit tests, lint, tsc, and `pnpm build` are green, and the menu is covered in jsdom —
+but dark/light 2× PNG sharpness, JPEG-on-white, SVG at 400%, and the grayscale shape
+check need a real browser (Playwright is still not installed — trap 11). Do them before
+calling Plan 4 done.
 
 ---
 
