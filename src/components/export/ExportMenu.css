@@ -1,0 +1,152 @@
+/* Export menu: tokens only, matching the toolbar's pill controls. All 8 states
+ * live on the two buttons; the error paragraph is the error state made words. */
+
+.cf-export {
+  position: relative;
+}
+
+.cf-export__trigger,
+.cf-export__download {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2xs) var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  cursor: pointer;
+  white-space: nowrap; /* gate 49: never two-line clickable text */
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.cf-export__trigger:hover:not(:disabled),
+.cf-export__download:hover:not(:disabled) {
+  background: var(--color-paper-3);
+  border-color: var(--color-node-brdr);
+  color: var(--color-ink);
+}
+
+.cf-export__trigger:focus-visible,
+.cf-export__download:focus-visible,
+.cf-export__option input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.cf-export__trigger:active:not(:disabled),
+.cf-export__download:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.cf-export__trigger:disabled,
+.cf-export__download:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cf-export__trigger[aria-expanded='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-rule);
+}
+
+.cf-export__panel {
+  position: absolute;
+  top: calc(100% + var(--space-2xs));
+  right: 0;
+  z-index: 50;
+  width: max-content;
+  min-width: 12rem;
+  max-width: 16rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+}
+
+.cf-export__group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.cf-export__group:disabled {
+  opacity: 0.55;
+}
+
+.cf-export__legend {
+  padding: 0 0 var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+.cf-export__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.cf-export__option input {
+  accent-color: var(--color-accent);
+}
+
+.cf-export__option input:disabled {
+  cursor: default;
+}
+
+.cf-export__option:has(input:disabled) {
+  color: var(--color-ink-3);
+  cursor: default;
+}
+
+.cf-export__hint {
+  color: var(--color-ink-3);
+}
+
+.cf-export__label {
+  text-transform: capitalize;
+}
+
+.cf-export__note {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-3);
+}
+
+.cf-export__error {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-export__trigger,
+  .cf-export__download {
+    transition: opacity 150ms var(--ease-out);
+  }
+  .cf-export__trigger:active:not(:disabled),
+  .cf-export__download:active:not(:disabled) {
+    transform: none;
+  }
+}

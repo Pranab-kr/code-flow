@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CodeEditor } from '@/components/editor/CodeEditor';
 import { FlowCanvas } from '@/components/canvas/FlowCanvas';
+import { ExportMenu, type ExportRequest } from '@/components/export/ExportMenu';
+import { toReactFlow } from '@/components/canvas/toReactFlow';
+import { graphToSvg } from '@/lib/export/toSvg';
+import { svgToBlob } from '@/lib/export/toRaster';
+import { readTokens } from '@/lib/export/tokens';
+import { downloadBlob, exportFilename } from '@/lib/export/download';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useParse } from '@/lib/useParse';
@@ -155,6 +161,58 @@ export function Workbench({
   const fn = ir?.functions[activeFn] ?? ir?.functions[0];
   const layout = fn ? layouts[fn.id] : undefined;
   const errorCount = ir?.diagnostics.filter((d) => d.severity === 'error').length ?? 0;
+  const languageLabel = selectedLanguage === 'cpp' ? 'C++' : selectedLanguage === 'java' ? 'Java' : 'Python';
+
+  // Export is only meaningful over a real diagram — never over an empty canvas.
+  const canExport = Boolean(fn && layout);
+  const exportBlockReason =
+    !fn || !layout
+      ? errorCount > 0
+        ? `The code doesn't parse as ${languageLabel} — fix the errors to export.`
+        : 'Nothing to export yet.'
+      : null;
+
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const handleExport = useCallback(
+    async (req: ExportRequest) => {
+      if (!fn || !layout) return;
+      setExporting(true);
+      setExportError(null);
+      try {
+        // JPEG has no transparency. The menu already prevents the pairing, but
+        // enforce it here too so no caller can export a black box.
+        const background =
+          req.format === 'jpeg' && req.background === 'transparent' ? 'white' : req.background;
+        const tokens = readTokens();
+        // Dragged positions are what the user sees, so they are what exports.
+        const { nodes, edges } = toReactFlow(fn, layout, positions);
+        const svg = graphToSvg({ nodes, edges, layout, tokens, background });
+        let blob: Blob;
+        if (req.format === 'svg') {
+          blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        } else {
+          // 'white' is the explicit slide-deck choice, not a theme color.
+          const paint =
+            background === 'transparent'
+              ? 'transparent'
+              : background === 'white'
+                ? '#ffffff'
+                : tokens['--color-canvas'] || '#ffffff';
+          blob = await svgToBlob(svg, req.format, req.scale, paint);
+        }
+        // Still inside the user's click handling, so this counts as
+        // user-initiated and browsers allow the download.
+        downloadBlob(blob, exportFilename(title, fn.name, req.format));
+      } catch (e) {
+        setExportError(e instanceof Error ? e.message : 'Export failed.');
+      } finally {
+        setExporting(false);
+      }
+    },
+    [fn, layout, positions, title],
+  );
 
   const view = describeStatus({
     parse: status,
@@ -230,6 +288,13 @@ export function Workbench({
         </div>
 
         <ThemeToggle />
+        <ExportMenu
+          canExport={canExport}
+          whyDisabled={exportBlockReason}
+          exporting={exporting}
+          error={exportError}
+          onExport={(req) => void handleExport(req)}
+        />
       </header>
 
       <div className="wb__panes" data-pane={pane}>
@@ -265,7 +330,9 @@ export function Workbench({
 
           {ir && ir.functions.length === 0 && status === 'ready' && (
             <p className="wb__notice">
-              No functions found yet. Paste a function and its diagram appears here.
+              {errorCount > 0
+                ? `Couldn't parse this as ${languageLabel}. Fix the errors, or switch the language above — the diagram returns when it parses.`
+                : 'No functions found yet. Paste a function and its diagram appears here.'}
             </p>
           )}
 
