@@ -1,0 +1,484 @@
+{
+  "graph": {
+    "id": "binary_search(arr,target)",
+    "name": "binary_search",
+    "params": [
+      "arr",
+      "target"
+    ],
+    "nodes": [
+      {
+        "id": "binary_search(arr,target)#entry",
+        "kind": "entry",
+        "label": "binary_search(arr, target)",
+        "statements": [],
+        "span": {
+          "startLine": 1,
+          "endLine": 12
+        }
+      },
+      {
+        "id": "binary_search(arr,target)#b0",
+        "kind": "basic",
+        "label": "lo = 0",
+        "statements": [
+          "lo = 0",
+          "hi = len(arr) - 1"
+        ],
+        "span": {
+          "startLine": 2,
+          "endLine": 3
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0#cond-b0",
+        "kind": "loop-header",
+        "label": "lo <= hi",
+        "statements": [
+          "lo <= hi"
+        ],
+        "span": {
+          "startLine": 4,
+          "endLine": 11
+        },
+        "meta": {
+          "loopKind": "while"
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0#b1",
+        "kind": "basic",
+        "label": "mid = (lo + hi) // 2",
+        "statements": [
+          "mid = (lo + hi) // 2"
+        ],
+        "span": {
+          "startLine": 5,
+          "endLine": 5
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0#cond-b0",
+        "kind": "branch",
+        "label": "arr[mid] == target",
+        "statements": [
+          "arr[mid] == target"
+        ],
+        "span": {
+          "startLine": 6,
+          "endLine": 11
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/then#return-b0",
+        "kind": "return",
+        "label": "return mid",
+        "statements": [
+          "return mid"
+        ],
+        "span": {
+          "startLine": 7,
+          "endLine": 7
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        "kind": "branch",
+        "label": "arr[mid] < target",
+        "statements": [
+          "arr[mid] < target"
+        ],
+        "span": {
+          "startLine": 8,
+          "endLine": 9
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+        "kind": "basic",
+        "label": "lo = mid + 1",
+        "statements": [
+          "lo = mid + 1"
+        ],
+        "span": {
+          "startLine": 9,
+          "endLine": 9
+        }
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+        "kind": "basic",
+        "label": "hi = mid - 1",
+        "statements": [
+          "hi = mid - 1"
+        ],
+        "span": {
+          "startLine": 11,
+          "endLine": 11
+        }
+      },
+      {
+        "id": "binary_search(arr,target)#return-b1",
+        "kind": "return",
+        "label": "return -1",
+        "statements": [
+          "return -1"
+        ],
+        "span": {
+          "startLine": 12,
+          "endLine": 12
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e0",
+        "source": "binary_search(arr,target)#entry",
+        "target": "binary_search(arr,target)#b0",
+        "kind": "seq"
+      },
+      {
+        "id": "e1",
+        "source": "binary_search(arr,target)#b0",
+        "target": "binary_search(arr,target)/while@0#cond-b0",
+        "kind": "seq"
+      },
+      {
+        "id": "e2",
+        "source": "binary_search(arr,target)/while@0#cond-b0",
+        "target": "binary_search(arr,target)/while@0#b1",
+        "kind": "true",
+        "label": "true"
+      },
+      {
+        "id": "e3",
+        "source": "binary_search(arr,target)/while@0#b1",
+        "target": "binary_search(arr,target)/while@0/if@0#cond-b0",
+        "kind": "seq"
+      },
+      {
+        "id": "e4",
+        "source": "binary_search(arr,target)/while@0/if@0#cond-b0",
+        "target": "binary_search(arr,target)/while@0/if@0/then#return-b0",
+        "kind": "true",
+        "label": "true"
+      },
+      {
+        "id": "e5",
+        "source": "binary_search(arr,target)/while@0/if@0#cond-b0",
+        "target": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        "kind": "false",
+        "label": "false"
+      },
+      {
+        "id": "e6",
+        "source": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        "target": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+        "kind": "true",
+        "label": "true"
+      },
+      {
+        "id": "e7",
+        "source": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        "target": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+        "kind": "false",
+        "label": "false"
+      },
+      {
+        "id": "e8",
+        "source": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+        "target": "binary_search(arr,target)/while@0#cond-b0",
+        "kind": "back",
+        "label": "while"
+      },
+      {
+        "id": "e9",
+        "source": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+        "target": "binary_search(arr,target)/while@0#cond-b0",
+        "kind": "back",
+        "label": "while"
+      },
+      {
+        "id": "e10",
+        "source": "binary_search(arr,target)/while@0#cond-b0",
+        "target": "binary_search(arr,target)#return-b1",
+        "kind": "false",
+        "label": "false"
+      }
+    ],
+    "entryId": "binary_search(arr,target)#entry",
+    "exitIds": [
+      "binary_search(arr,target)/while@0/if@0/then#return-b0",
+      "binary_search(arr,target)#return-b1"
+    ]
+  },
+  "layout": {
+    "nodes": [
+      {
+        "id": "binary_search(arr,target)#entry",
+        "x": 76,
+        "y": 12,
+        "width": 220,
+        "height": 40
+      },
+      {
+        "id": "binary_search(arr,target)#b0",
+        "x": 109,
+        "y": 100,
+        "width": 154,
+        "height": 60
+      },
+      {
+        "id": "binary_search(arr,target)/while@0#cond-b0",
+        "x": 116,
+        "y": 208,
+        "width": 140,
+        "height": 40
+      },
+      {
+        "id": "binary_search(arr,target)/while@0#b1",
+        "x": 208,
+        "y": 296,
+        "width": 176,
+        "height": 40
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0#cond-b0",
+        "x": 198,
+        "y": 384,
+        "width": 195,
+        "height": 56
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/then#return-b0",
+        "x": 193,
+        "y": 488,
+        "width": 140,
+        "height": 40
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        "x": 365,
+        "y": 488,
+        "width": 189,
+        "height": 56
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/else/if@0/then#b0",
+        "x": 125,
+        "y": 592,
+        "width": 140,
+        "height": 40
+      },
+      {
+        "id": "binary_search(arr,target)/while@0/if@0/else/if@0/else#b0",
+        "x": 481,
+        "y": 592,
+        "width": 140,
+        "height": 40
+      },
+      {
+        "id": "binary_search(arr,target)#return-b1",
+        "x": 12,
+        "y": 296,
+        "width": 140,
+        "height": 40
+      }
+    ],
+    "edges": [
+      {
+        "id": "e0",
+        "points": [
+          {
+            "x": 186,
+            "y": 52
+          },
+          {
+            "x": 186,
+            "y": 100
+          }
+        ]
+      },
+      {
+        "id": "e1",
+        "points": [
+          {
+            "x": 186,
+            "y": 160
+          },
+          {
+            "x": 186,
+            "y": 208
+          }
+        ]
+      },
+      {
+        "id": "e2",
+        "points": [
+          {
+            "x": 200,
+            "y": 248
+          },
+          {
+            "x": 200,
+            "y": 268
+          },
+          {
+            "x": 296,
+            "y": 268
+          },
+          {
+            "x": 296,
+            "y": 296
+          }
+        ]
+      },
+      {
+        "id": "e3",
+        "points": [
+          {
+            "x": 296,
+            "y": 336
+          },
+          {
+            "x": 296,
+            "y": 384
+          }
+        ]
+      },
+      {
+        "id": "e4",
+        "points": [
+          {
+            "x": 263,
+            "y": 440
+          },
+          {
+            "x": 263,
+            "y": 488
+          }
+        ]
+      },
+      {
+        "id": "e5",
+        "points": [
+          {
+            "x": 328,
+            "y": 440
+          },
+          {
+            "x": 328,
+            "y": 450
+          },
+          {
+            "x": 460,
+            "y": 450
+          },
+          {
+            "x": 460,
+            "y": 488
+          }
+        ]
+      },
+      {
+        "id": "e6",
+        "points": [
+          {
+            "x": 428,
+            "y": 544
+          },
+          {
+            "x": 428,
+            "y": 554
+          },
+          {
+            "x": 218,
+            "y": 554
+          },
+          {
+            "x": 218,
+            "y": 592
+          }
+        ]
+      },
+      {
+        "id": "e7",
+        "points": [
+          {
+            "x": 491,
+            "y": 544
+          },
+          {
+            "x": 491,
+            "y": 554
+          },
+          {
+            "x": 528,
+            "y": 554
+          },
+          {
+            "x": 528,
+            "y": 592
+          }
+        ]
+      },
+      {
+        "id": "e8",
+        "points": [
+          {
+            "x": 172,
+            "y": 592
+          },
+          {
+            "x": 172,
+            "y": 248
+          }
+        ]
+      },
+      {
+        "id": "e9",
+        "points": [
+          {
+            "x": 574,
+            "y": 592
+          },
+          {
+            "x": 574,
+            "y": 258
+          },
+          {
+            "x": 228,
+            "y": 258
+          },
+          {
+            "x": 228,
+            "y": 248
+          }
+        ]
+      },
+      {
+        "id": "e10",
+        "points": [
+          {
+            "x": 144,
+            "y": 248
+          },
+          {
+            "x": 144,
+            "y": 258
+          },
+          {
+            "x": 82,
+            "y": 258
+          },
+          {
+            "x": 82,
+            "y": 296
+          }
+        ]
+      }
+    ],
+    "width": 633,
+    "height": 644
+  }
+}

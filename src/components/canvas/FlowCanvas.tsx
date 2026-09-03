@@ -46,6 +46,12 @@ interface Props {
   onAnnotationMoved?: (id: string, x: number, y: number) => void;
   onAnnotationSave?: (id: string, body: string) => void;
   onAnnotationDelete?: (id: string) => void;
+  /**
+   * Marketing hero embed sets this false: no dragging, no pan/zoom (the page
+   * keeps scrolling), no keyboard traversal. The hero wraps the canvas
+   * aria-hidden with its own text description, so nothing is lost.
+   */
+  interactive?: boolean;
 }
 
 export function FlowCanvas({
@@ -58,6 +64,7 @@ export function FlowCanvas({
   onAnnotationMoved,
   onAnnotationSave,
   onAnnotationDelete,
+  interactive = true,
 }: Props) {
   const computed = useMemo(() => {
     const { nodes, edges } = toReactFlow(graph, layout, overrides, annotations);
@@ -127,16 +134,19 @@ export function FlowCanvas({
       fitView
       minZoom={0.15}
       maxZoom={2}
-      nodesDraggable
+      nodesDraggable={interactive}
       nodesConnectable={false}
-      nodesFocusable
-      elementsSelectable
+      nodesFocusable={interactive}
+      elementsSelectable={interactive}
+      panOnDrag={interactive}
+      zoomOnScroll={interactive}
       proOptions={{ hideAttribution: false }}
-      aria-label={`Control flow diagram for ${graph.name}`}
+      aria-label={interactive ? `Control flow diagram for ${graph.name}` : undefined}
+      aria-hidden={!interactive || undefined}
     >
       <Background gap={24} size={1} color="var(--color-rule)" />
-      <Controls showInteractive={false} />
-      {nodes.length > MINIMAP_THRESHOLD && <MiniMap pannable zoomable />}
+      {interactive && <Controls showInteractive={false} />}
+      {interactive && nodes.length > MINIMAP_THRESHOLD && <MiniMap pannable zoomable />}
     </ReactFlow>
   );
 }
