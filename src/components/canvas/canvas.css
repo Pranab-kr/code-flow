@@ -154,6 +154,14 @@
   background: var(--color-paper-2);
 }
 
+/* The attribution link ships 13px tall inside React Flow; WCAG 2.2 target
+ * size wants 24px. Keep the attribution, give it the height. */
+.react-flow__attribution a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cf-node {
     transition: opacity 150ms var(--ease-out);
@@ -184,12 +192,16 @@
   margin: 0;
   padding: 0;
 }
+.cf-outline__item {
+  padding-left: calc(var(--outline-depth, 0) * var(--space-md));
+  min-width: 0;
+}
 .cf-outline__step {
   display: block;
   width: 100%;
   text-align: left;
-  margin-left: calc(var(--outline-depth, 0) * var(--space-md));
   padding: var(--space-2xs) var(--space-xs);
+  overflow-wrap: anywhere;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
