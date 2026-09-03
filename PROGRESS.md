@@ -16,11 +16,12 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
 | **Plan 3** | **All 4 tasks done. Smoke-tested in a real browser 2026-09-01.** |
-| **Plan 4** | **All 4 tasks done** (SVG, raster, export UI, sticky notes). Code-complete; verification outstanding — trap 12 + Task 3 Step 5 by-eye checks. |
-| **Plan 5** | Task 1 done (envelope encryption). Task 2 key vault next. |
-| **Tests** | 293 unit passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Plan 4** | **All 4 tasks done** (SVG, raster, export UI, sticky notes). **Trap 12 FIXED 2026-09-03** (ElkEdge + SVG rhombus, eye-verified on `/demo`). Task 3 Step 5 file-format eye checks (2× PNG both themes, JPEG white, SVG at 400%, grayscale) still owed. |
+| **Plan 5** | **All 4 tasks COMMITTED 2026-09-03** (vault `117bb04`, chat backend `2cf673f`, trap-12 `c5b0da8`, chat UI `aed893b`). **Migrations 0005/0006 applied 2026-09-03 via Supabase MCP; RLS 21/21; live vault round-trip proven.** Task 4 Step 5 hand verification with a real provider key still owed (devtools body check, selected-node grounding, wrong-key wording, log grep). |
+| **Plan 6** | **Tasks 1–2 done, committed 2026-09-03** (landing `c287e9b`, auth `b868232`). Map/Diagram + N13 (working palette) + Ft5, Aurora; hero is the real FlowCanvas on prebaked IR, browser-verified at 1280/390/320 with zero console errors. Tasks 3–5 owed (outline view + keyboard nav, E2E + slop pass, close-out). |
+| **Tests** | 330 unit passing (+6 live vault round-trip with env) · RLS 21/21 · lint clean · `tsc --noEmit` clean · build succeeds |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 5 Task 2: key storage and provider registry** (`docs/superpowers/plans/2026-09-01-p1-plan5-byok-chat.md`). Note: Task 3 Step 5 by-eye checks (2× PNG both themes, JPEG white, SVG at 400%, grayscale) **plus trap 12** (canvas-vs-export divergence) still need a real browser — automated suite green, build green, not yet eye-verified. Do not call Plan 4 done until trap 12 is fixed. |
+| **Next action** | Plan 6 Task 3 (GraphOutline + keyboard nav + axe spec), then Task 4 (slice E2E + 58-gate slop + Lighthouse), then Task 5 (full verify + P1 retrospective + P2 stub). Playwright + axe still not installed (`pnpm add -D @playwright/test @axe-core/playwright`). |
 
 ---
 
@@ -155,9 +156,19 @@ back edges dashed and pointing the right way.
 | Task | Deliverable | State |
 |---|---|---|
 | 1 | AES-256-GCM envelope encryption with AAD | ✅ `2e54763` (10 tests) |
-| 2 | Key storage and provider registry | ⬜ **next** |
-| 3 | Grounded chat | ⬜ |
-| 4 | Chat panel and settings UI | ⬜ |
+| 2 | Key storage and provider registry | ✅ `117bb04` (migration `0005_provider_keys.sql`, `providers.ts` + `ENABLED_PROVIDERS`, `keys.ts` service-role helpers, `/api/keys`, 11 tests; RLS +2 tests) — **migration applied, RLS 21/21, live vault round-trip proven 2026-09-03** |
+| 3 | Grounded chat | ✅ `2cf673f` (migration `0006_chat.sql`, `buildContext` 5 tests, `/api/chat` streaming route 7 tests, RLS +3 tests) — **migration applied, RLS 21/21** |
+| 4 | Chat panel and settings UI | ✅ `aed893b` (`ChatPanel` 6 tests, `/settings/keys`, Workbench Ask pane) — needs Task 4 Step 5 hand verification with a real key |
+
+## Task board — Plan 6
+
+| Task | Deliverable | State |
+|---|---|---|
+| 1 | Landing page with live embedded canvas | ✅ `c287e9b` (Map/Diagram · N13 working palette · Ft5 · Aurora; `demo-ir.json` prebaked 10n/11e via `scripts/bake-demo-ir.mts`; `FlowCanvas interactive={false}`; eye-verified 1280/390/320, 0 console errors, no h-scroll) |
+| 2 | Accessible auth pages | ✅ `b868232` (client email-shape check, controlled inputs keep typed values, focus to `role=alert` error; server errors already plain-language) |
+| 3 | Canvas accessibility (outline, keyboard, axe) | ⬜ next |
+| 4 | E2E + 58-gate slop + Lighthouse | ⬜ (needs `pnpm add -D @playwright/test @axe-core/playwright`) |
+| 5 | Close out P1 | ⬜ |
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -530,14 +541,85 @@ Orphan anchoring (note points at a vanished node id) renders free-floating: degr
 never blank. Trap 12 (canvas-vs-export divergence) is untouched by this and still gates
 Plan 4 done.
 
-### 2026-09-03 — Plan 5 Task 1: envelope encryption exactly as planned (`2e54763`)
-`src/lib/crypto/envelope.ts` implements the plan's code verbatim — AES-256-GCM, 96-bit
+### 2026-09-03 — Plan 5 Task 1: envelope encryption exactly as planned (`2e54763`)`src/lib/crypto/envelope.ts` implements the plan's code verbatim — AES-256-GCM, 96-bit
 IV per record, AAD `user_id|provider`, KEK from `BYOK_KEK` (refuses to run without one,
 rejects non-32-byte keys), `keyVersion` stamped from `BYOK_KEK_VERSION`. All 10 plan
 tests pass. Step 1 was already satisfied: KEK generated in `.env.local`, documented in
 `.env.example` and `docs/setup.md`. Next is Task 2 (vault table + registry); note the
 plan's Step 4 test will force unverified providers (`opencode-zen`, `nvidia-nim`) out of
 `ENABLED_PROVIDERS` until their base URLs are confirmed — do not weaken that test.
+
+### 2026-09-03 — opencode.json is per-machine config, now gitignored
+The user's client configures Supabase + Playwright MCP servers in `opencode.json`
+(`npx -y @playwright/mcp`, Supabase remote). It sits alongside `.mcp.json`, which was
+already gitignored for the same reason (per-machine + local keys). I cannot invoke
+either MCP server from here — no MCP tool is exposed to this agent — so they are used
+indirectly: Playwright's Chromium at `~/.cache/ms-playwright` via throwaway
+`playwright-core` scripts in `/tmp` (trap 11 pattern), Supabase via the service key in
+`.env.local` for reads and via the user's MCP/dashboard for DDL.
+
+### 2026-09-03 — Migration numbering: 0005 provider keys, 0006 chat
+Plan 5 Task 2's text assumes the next migration is `0004`, but `0004_realtime.sql`
+already exists. The vault migration is `0005_provider_keys.sql`, chat is
+`0006_chat.sql`. `chat_messages` RLS mirrors the `graphs_own`-via-`snapshots` pattern
+(join through the thread), and policies reference `private.owns_project` (0003 moved it
+out of `public` — match that schema, not the plan's unqualified name).
+
+### 2026-09-03 — Trap 12 fixed: canvas renders ELK routing, diamonds are SVG rhombi
+Reproduced live on `/demo` (binary search: diagonal-bar diamonds, back edge cutting
+across nodes, zero console errors), then fixed in `src/components/canvas/`:
+- `toReactFlow` carries ELK `layout.edges[].points` in `edge.data.points`, and the new
+  `ElkEdge` custom edge (registered once in `FlowCanvas.edgeTypes`) draws them as a
+  polyline with the same midpoint label rule as export. There is exactly one edge
+  type, so none can go unregistered.
+- A dragged endpoint opts that edge back into live routing (`points` omitted), since
+  static points would freeze the edge at the pre-drag geometry.
+- Decision diamonds are an inline SVG rhombus (`viewBox 0 0 100 100`,
+  `preserveAspectRatio="none"`, `vector-effect: non-scaling-stroke`) — the same
+  full-box rhombus `toSvg.ts` emits, at any aspect ratio. The old
+  `rotate(45deg) scale(0.72)` div is gone.
+- Strengthened parity channel: `ExportEdge = RFEdge & { points? }`, so export now
+  reads the canvas's own points. Regression tests pin points pass-through,
+  drag opt-out, serializability, path building, and the rhombus geometry.
+- Eye-verified after the fix: true rhombi, back edge routed around the right side,
+  true/false labels legible, 10 nodes / 11 edges / status ready / zero console errors.
+  Do NOT reintroduce per-kind built-in edge types (`smoothstep`/`default`) — that was
+  the divergence.
+
+### 2026-09-03 — Never run `npm init` (or bare `npx`) in the repo root
+This is a pnpm repo with no `"type"` field. A stray `npm init -y` merged
+`"type": "commonjs"` + npm-init boilerplate into `package.json` and created
+`package-lock.json`, which 500'd every route (Turbopack ESM/CJS mismatch). Reverted via
+`git checkout -- package.json` + deleting the lockfile. Throwaway npm work belongs in
+`/tmp` with `--prefix`, and only after `mkdir -p` (a missing workdir silently falls
+back to the repo root).
+
+### 2026-09-03 — Re-tripped the npm-init trap with `--prefix` (my fault, same fix)
+`npm init -y --prefix /tmp/pw-smoke` from the repo root still stamped
+`"type": "commonjs"` + boilerplate into the repo's `package.json`: **`npm init`
+ignores `--prefix` and always initializes the cwd.** Same 500-every-route symptom,
+same `git checkout -- package.json` fix (no lockfile this time), plus a dev-server
+restart to clear Turbopack's cached resolution. The durable rule: set the throwaway
+directory via the shell `workdir`, never via `--prefix` — or better, keep throwaway
+npm work out of this repo entirely.
+
+### 2026-09-03 — Plan 6 landing: three deliberate deviations, all documented
+- **No `(marketing)` route group.** The plan names `src/app/(marketing)/page.tsx`,
+  but that and `src/app/page.tsx` would both own `/`. Marketing lives at
+  `src/app/page.tsx` directly.
+- **N13 pill is a real section+route palette**, not a link to the app's command
+  palette (the app has none). A dead pill would be worse than N9; the palette
+  groups Product/Account destinations with full keyboard model (⌘K, ↑/↓, Enter, Esc).
+- **`FlowCanvas` grew an additive `interactive = true` prop** rather than a hero
+  fork: `interactive={false}` disables drag/pan/zoom/focus/select + hides
+  Controls/MiniMap, and the hero wraps it aria-hidden with its own text
+  description. No wasm in the hero path — `demo-ir.json` is committed.
+
+### 2026-09-03 — React resets uncontrolled inputs when a form action finishes
+The login form cleared the email on every failed submit, failing Plan 6 Task 2's
+"keep what they typed". `AuthForm` inputs are now controlled (`useState`), so a
+failed submit preserves values; the client-side email-shape check runs before the
+round trip and focus moves to the `role=alert` error on failure.
 
 ---
 
@@ -633,26 +715,21 @@ Things a future agent will otherwise trip over:
      Either install and configure Playwright properly (it is still owed from Plan 1 Task 7) or
      stop listing that command as a gate.
 
-12. **FIX REQUIRED (reported 2026-09-03 with screenshots): live canvas loads tangled,
-     export is clean — same graph, two renderings.** On initial project load the canvas
-     shows overlapping decision diamonds (wide conditions render as diagonal bars),
-     back edges cutting diagonally across nodes, and floating `while` labels; exporting
-     that same graph (SVG/PNG via `graphToSvg`) produces a clean structured diagram.
-     This is a code problem, not a data problem:
-     - `src/components/canvas/toReactFlow.ts` drops ELK-routed `layout.edges[].points`
-       and React Flow re-routes with `smoothstep`/`default`, while
-       `src/lib/export/toSvg.ts` draws the ELK points. The two views can never match
-       until the canvas renders ELK routing (custom edge type or pass-through path).
-     - `src/components/canvas/canvas.css` `.cf-node__diamond`
-       (`rotate(45deg) scale(0.72)` over a wide-flat ELK box, e.g. ~189×56 for
-       `arr[mid] == target`) renders as a diagonal bar; export draws a true diamond
-       polygon (`toSvg.ts`: `branch`/`switch` polygon). Fix the CSS and/or size ELK
-       branch nodes squarer, and verify `nodeSize` estimates vs measured DOM so text
-       does not overflow the shape.
-     - Repro: load a binary-search project → observe tangled canvas → Export SVG →
-       clean file. Do not call Plan 4 done until canvas and export read as the same
-       diagram. Regression should compare canvas edge paths (or screenshots) against
-       export, not just unit-test each in isolation.
+12. **FIXED 2026-09-03 (eye-verified on `/demo`).** The canvas now renders ELK
+     routing through the `elk` edge type and draws decisions as SVG rhombi — see the
+     decision-log entry. Reproduced first (diagonal bars, back edge cutting across),
+     then fixed, then re-screenshot: true rhombi, back edge routed around the side,
+     zero console errors. Remaining: Task 3 Step 5 file-format eye checks (2× PNG
+     both themes, JPEG white, SVG at 400%, grayscale).
+
+13. **RESOLVED 2026-09-03: migrations applied, suite is 21/21 for real.** Pre-migration
+     baseline was 19/21 with two honest `PGRST205` failures; the three vacuous passes
+     are now genuine (policies evaluated against existing tables). Additionally the
+     `keys.test.ts` live round-trip (encrypt → upsert → list → decrypt → delete, temp
+     user cleaned up) passes against the hosted DB when run with `.env.local` sourced
+     — run as `set -a; source .env.local; set +a; pnpm vitest run --project unit
+     src/lib/ai/keys.test.ts`. It skips under plain `pnpm test` by design (unit
+     project carries no env).
 
 ---
 
