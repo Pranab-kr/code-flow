@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { AuthResult } from './actions';
 import './auth.css';
@@ -36,11 +36,28 @@ export function AuthForm({ mode, action, next }: Props) {
   const copy = COPY[mode];
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Controlled so a failed submit keeps what was typed: React resets
+  // uncontrolled inputs when a form action finishes.
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [pending, startTransition] = useTransition();
+  const errorRef = useRef<HTMLParagraphElement>(null);
+
+  // Move focus to the error so a screen reader announces it (Plan 6 Task 2).
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
 
   function onSubmit(formData: FormData) {
     setError(null);
     setNotice(null);
+    // Client-side email check before the round trip: kinder than a server
+    // rejection. Typed values stay put (controlled inputs, above).
+    const address = String(formData.get('email') ?? '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      setError('Enter an email address shaped like you@example.com.');
+      return;
+    }
     startTransition(async () => {
       // A redirect means success. Control returns here for a failure OR for a
       // success that still needs the user to do something (confirm an email).
@@ -73,6 +90,8 @@ export function AuthForm({ mode, action, next }: Props) {
           type="email"
           autoComplete="email"
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? 'auth-error' : undefined}
           disabled={pending}
@@ -88,6 +107,8 @@ export function AuthForm({ mode, action, next }: Props) {
           type="password"
           autoComplete={copy.passwordAutocomplete}
           required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           aria-invalid={error ? 'true' : undefined}
           aria-describedby={error ? 'auth-error' : undefined}
           disabled={pending}
@@ -95,7 +116,13 @@ export function AuthForm({ mode, action, next }: Props) {
 
         {error && (
           // tabIndex + role=alert so a screen reader announces it and focus can land here
-          <p className="auth__error" id="auth-error" role="alert" tabIndex={-1}>
+          <p
+            className="auth__error"
+            id="auth-error"
+            role="alert"
+            tabIndex={-1}
+            ref={errorRef}
+          >
             {error}
           </p>
         )}
