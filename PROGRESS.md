@@ -16,10 +16,11 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
 | **Plan 3** | **All 4 tasks done. Smoke-tested in a real browser 2026-09-01.** |
-| **Plan 4** | Tasks 1–3 done (SVG, raster, export UI). Task 4 sticky notes next. |
-| **Tests** | 261 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Plan 4** | **All 4 tasks done** (SVG, raster, export UI, sticky notes). Code-complete; verification outstanding — trap 12 + Task 3 Step 5 by-eye checks. |
+| **Plan 5** | Task 1 done (envelope encryption). Task 2 key vault next. |
+| **Tests** | 293 unit passing · lint clean · `tsc --noEmit` clean · build succeeds |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 4 Task 4: sticky notes** (`docs/superpowers/plans/2026-09-01-p1-plan4-export.md`). Note: Task 3 Step 5 by-eye checks (2× PNG both themes, JPEG white, SVG at 400%, grayscale) still need a real browser — automated suite green, build green, not yet eye-verified. |
+| **Next action** | **Plan 5 Task 2: key storage and provider registry** (`docs/superpowers/plans/2026-09-01-p1-plan5-byok-chat.md`). Note: Task 3 Step 5 by-eye checks (2× PNG both themes, JPEG white, SVG at 400%, grayscale) **plus trap 12** (canvas-vs-export divergence) still need a real browser — automated suite green, build green, not yet eye-verified. Do not call Plan 4 done until trap 12 is fixed. |
 
 ---
 
@@ -147,9 +148,16 @@ back edges dashed and pointing the right way.
 | 1 | `graphToSvg` from the IR + tests | ✅ `111106b` (11 tests) |
 | 2 | Raster export (PNG/JPEG via canvas) | ✅ `c795618` (10 tests) |
 | 3 | Export UI, 3 formats, all 8 states | ✅ `51221d0` (menu 8 tests + download 6 + tokens 2; Workbench wired) |
-| 4 | Sticky notes | ⬜ **next** |
-| 3 | Export UI, 3 formats, all 8 states | ⬜ |
-| 4 | Sticky notes | ⬜ |
+| 4 | Sticky notes | ✅ `b8ca2cb` (annotations lib 6 + toReactFlow 6 + AnnotationNode 5 + toSvg 4 + menu toggle 1; canvas + export + persistence wired) |
+
+## Task board — Plan 5
+
+| Task | Deliverable | State |
+|---|---|---|
+| 1 | AES-256-GCM envelope encryption with AAD | ✅ `2e54763` (10 tests) |
+| 2 | Key storage and provider registry | ⬜ **next** |
+| 3 | Grounded chat | ⬜ |
+| 4 | Chat panel and settings UI | ⬜ |
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -506,6 +514,31 @@ but dark/light 2× PNG sharpness, JPEG-on-white, SVG at 400%, and the grayscale 
 check need a real browser (Playwright is still not installed — trap 11). Do them before
 calling Plan 4 done.
 
+### 2026-09-03 — Sticky notes are tier-1 data: never re-derived, moved by delta
+Plan 4 Task 4 (`b8ca2cb`). Notes live in `src/lib/annotations.ts` as `{id, nodeId, body,
+x, y}` and `toReactFlow` emits them as `type: 'annotation'` nodes alongside — never from
+the graph, so a re-parse cannot drop them (pinned by a test that re-parses with notes
+held constant). Anchored notes move with their node via `shiftAnchored(nodeId, dx, dy)`,
+computed from the drag delta in `Workbench.handleNodeMoved`, not by storing offsets:
+absolute positions keep the DB row trivially exportable. `AnnotationNode` has no Handles
+(notes can never be edge endpoints) and saves on blur through `annotation-actions.ts`
+(create/update/move/delete, all RLS-scoped like `saveOverride`). Export draws notes from
+the same `FlowNode[]` behind an "Include sticky notes" toggle defaulting on; the note
+shape (rect + thick top rule in `--color-warn`) is the at-a-glance cue so it survives
+grayscale. Demo (no project) keeps notes session-local — they still render and export.
+Orphan anchoring (note points at a vanished node id) renders free-floating: degrade,
+never blank. Trap 12 (canvas-vs-export divergence) is untouched by this and still gates
+Plan 4 done.
+
+### 2026-09-03 — Plan 5 Task 1: envelope encryption exactly as planned (`2e54763`)
+`src/lib/crypto/envelope.ts` implements the plan's code verbatim — AES-256-GCM, 96-bit
+IV per record, AAD `user_id|provider`, KEK from `BYOK_KEK` (refuses to run without one,
+rejects non-32-byte keys), `keyVersion` stamped from `BYOK_KEK_VERSION`. All 10 plan
+tests pass. Step 1 was already satisfied: KEK generated in `.env.local`, documented in
+`.env.example` and `docs/setup.md`. Next is Task 2 (vault table + registry); note the
+plan's Step 4 test will force unverified providers (`opencode-zen`, `nvidia-nim`) out of
+`ENABLED_PROVIDERS` until their base URLs are confirmed — do not weaken that test.
+
 ---
 
 ## Known gaps and traps
@@ -594,11 +627,32 @@ Things a future agent will otherwise trip over:
     export button that would otherwise be enabled over an empty canvas.
 
 11. **Playwright is listed in the verify commands but is NOT installed** — no
-    `playwright.config.*`, no devDependency. `pnpm exec playwright test` fails with
-    `Command "playwright" not found`. The 2026-09-01 browser smoke test ran a throwaway
-    `playwright-core` in `/tmp` against the Chromium already in `~/.cache/ms-playwright`.
-    Either install and configure Playwright properly (it is still owed from Plan 1 Task 7) or
-    stop listing that command as a gate.
+     `playwright.config.*`, no devDependency. `pnpm exec playwright test` fails with
+     `Command "playwright" not found`. The 2026-09-01 browser smoke test ran a throwaway
+     `playwright-core` in `/tmp` against the Chromium already in `~/.cache/ms-playwright`.
+     Either install and configure Playwright properly (it is still owed from Plan 1 Task 7) or
+     stop listing that command as a gate.
+
+12. **FIX REQUIRED (reported 2026-09-03 with screenshots): live canvas loads tangled,
+     export is clean — same graph, two renderings.** On initial project load the canvas
+     shows overlapping decision diamonds (wide conditions render as diagonal bars),
+     back edges cutting diagonally across nodes, and floating `while` labels; exporting
+     that same graph (SVG/PNG via `graphToSvg`) produces a clean structured diagram.
+     This is a code problem, not a data problem:
+     - `src/components/canvas/toReactFlow.ts` drops ELK-routed `layout.edges[].points`
+       and React Flow re-routes with `smoothstep`/`default`, while
+       `src/lib/export/toSvg.ts` draws the ELK points. The two views can never match
+       until the canvas renders ELK routing (custom edge type or pass-through path).
+     - `src/components/canvas/canvas.css` `.cf-node__diamond`
+       (`rotate(45deg) scale(0.72)` over a wide-flat ELK box, e.g. ~189×56 for
+       `arr[mid] == target`) renders as a diagonal bar; export draws a true diamond
+       polygon (`toSvg.ts`: `branch`/`switch` polygon). Fix the CSS and/or size ELK
+       branch nodes squarer, and verify `nodeSize` estimates vs measured DOM so text
+       does not overflow the shape.
+     - Repro: load a binary-search project → observe tangled canvas → Export SVG →
+       clean file. Do not call Plan 4 done until canvas and export read as the same
+       diagram. Regression should compare canvas edge paths (or screenshots) against
+       export, not just unit-test each in isolation.
 
 ---
 
