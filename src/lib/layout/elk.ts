@@ -46,7 +46,46 @@ export function nodeSize(node: IRNode): { width: number; height: number } {
   return { width, height };
 }
 
-const elk = new ELK();
+/**
+ * Construct ELK with a `document` in scope.
+ *
+ * elk.bundled.js inlines elk-worker.min.js, which decides AT EVALUATION TIME
+ * whether it is itself a worker script:
+ *
+ *     if (typeof document === 'undefined' && typeof self !== 'undefined') {
+ *       self.onmessage = dispatch;            // become the solver
+ *     } else if (typeof module !== 'undefined' && module.exports) {
+ *       module.exports = { default: j, Worker: j };   // export the fake Worker
+ *     }
+ *
+ * Inside our parse worker both conditions of the first branch hold, so it never
+ * reaches the export branch and `require('./elk-worker.min.js').Worker` is
+ * undefined — `new ELK()` then dies with "_Worker is not a constructor" and the
+ * canvas hangs on its skeleton forever.
+ *
+ * Browserify evaluates that inner module LAZILY, on the `require` inside the
+ * ELKNode constructor, so the shim only has to span construction. It is removed
+ * immediately: nothing afterwards wants a fake `document`, and leaving one in a
+ * worker's global scope would mislead any other library that feature-detects.
+ *
+ * Not `elkjs/lib/elk-api.js` + a nested worker: that spawns a second worker per
+ * parse and needs a separately served script URL, which Turbopack does not give
+ * us for a file inside node_modules. Verified both paths in a real worker.
+ */
+function createElk(): InstanceType<typeof ELK> {
+  const g = globalThis as { document?: unknown; self?: unknown };
+  const needsShim = typeof g.document === 'undefined' && typeof g.self !== 'undefined';
+  if (!needsShim) return new ELK();
+
+  g.document = {};
+  try {
+    return new ELK();
+  } finally {
+    delete g.document;
+  }
+}
+
+const elk = createElk();
 
 const ELK_OPTIONS: Record<string, string> = {
   'elk.algorithm': 'layered',
