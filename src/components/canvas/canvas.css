@@ -82,6 +82,17 @@
   outline-offset: 2px;
 }
 
+/* Keyboard traversal: React Flow focuses nodes with Tab when nodesFocusable
+ * is on. The ring uses the focus token, which passes 3:1 on the canvas in
+ * both themes (see scripts/check-contrast.py), so it reads on Day and Night. */
+.react-flow__node:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.react-flow__node:focus-visible .cf-node {
+  outline: none;
+}
+
 .cf-node__kind {
   display: block;
   font-size: 10px;
@@ -147,4 +158,72 @@
   .cf-node {
     transition: opacity 150ms var(--ease-out);
   }
+}
+
+/* --- Graph outline --------------------------------------------------------
+ * A text view of the same IR: nested by structural depth, operable with Tab +
+ * Enter. Every value is a token; nesting is a padding step, never a colour. */
+.cf-outline {
+  overflow: auto;
+  padding: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-ink);
+}
+.cf-outline__heading {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+.cf-outline__count {
+  margin-left: var(--space-xs);
+  color: var(--color-ink-3);
+}
+.cf-outline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cf-outline__step {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-left: calc(var(--outline-depth, 0) * var(--space-md));
+  padding: var(--space-2xs) var(--space-xs);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.cf-outline__step:hover {
+  background: var(--color-paper-2);
+}
+.cf-outline__step:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.cf-outline__step:active {
+  background: var(--color-paper-3);
+}
+.cf-outline__step[aria-current='true'] {
+  border-color: var(--color-focus);
+}
+.cf-outline__num {
+  color: var(--color-ink-3);
+}
+.cf-outline__kind {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-3);
+}
+.cf-outline__line {
+  color: var(--color-ink-3);
+}
+.cf-outline__warn {
+  color: var(--color-warn);
+}
+.cf-outline__back {
+  color: var(--color-ink-2);
 }

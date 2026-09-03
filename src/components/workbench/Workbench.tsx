@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CodeEditor } from '@/components/editor/CodeEditor';
 import { FlowCanvas } from '@/components/canvas/FlowCanvas';
+import { GraphOutline } from '@/components/canvas/GraphOutline';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import { ExportMenu, type ExportRequest } from '@/components/export/ExportMenu';
 import { toReactFlow } from '@/components/canvas/toReactFlow';
@@ -21,6 +22,7 @@ import type { Language, ProgramIR } from '@/lib/ir/types';
 import './workbench.css';
 
 type Pane = 'code' | 'diagram' | 'ask';
+type CanvasView = 'diagram' | 'outline';
 
 const SAVE_DEBOUNCE_MS = 1500;
 
@@ -90,6 +92,7 @@ export function Workbench({
   const [revealLine, setRevealLine] = useState<number | undefined>();
   const [activeFn, setActiveFn] = useState(0);
   const [pane, setPane] = useState<Pane>('diagram');
+  const [canvasView, setCanvasView] = useState<CanvasView>('diagram');
   // The Ask pane exists only for persisted projects; the demo has no project
   // id, so there is nothing to ground a question in and nowhere to send it.
   const [askOpen, setAskOpen] = useState(true);
@@ -465,6 +468,25 @@ export function Workbench({
           )}
 
           {fn && layout && (
+            <div className="wb__viewswitch" role="group" aria-label="Diagram view">
+              <button
+                type="button"
+                aria-pressed={canvasView === 'diagram'}
+                onClick={() => setCanvasView('diagram')}
+              >
+                Diagram
+              </button>
+              <button
+                type="button"
+                aria-pressed={canvasView === 'outline'}
+                onClick={() => setCanvasView('outline')}
+              >
+                Outline
+              </button>
+            </div>
+          )}
+
+          {fn && layout && canvasView === 'diagram' && (
             <FlowCanvas
               graph={fn}
               layout={layout}
@@ -475,6 +497,14 @@ export function Workbench({
               onAnnotationMoved={handleNoteMoved}
               onAnnotationSave={handleNoteSave}
               onAnnotationDelete={handleNoteDelete}
+            />
+          )}
+
+          {fn && layout && canvasView === 'outline' && (
+            <GraphOutline
+              graph={fn}
+              selectedId={selectedNodeId}
+              onSelect={(line, nodeId) => handleNodeClick(line, nodeId)}
             />
           )}
 

@@ -47,6 +47,9 @@ export function CodeEditor({ value, language, theme, revealLine, onChange, onPas
     });
   }, [revealLine]);
 
+  // No aria-label prop on CodeMirror: @uiw/react-codemirror forwards it onto a
+  // plain div (.cm-theme) with no role, which fails axe aria-prohibited-attr.
+  // The Workbench names this region already (<section aria-label="Code">).
   return (
     <CodeMirror
       ref={ref}
@@ -65,7 +68,6 @@ export function CodeEditor({ value, language, theme, revealLine, onChange, onPas
       ]}
       onChange={onChange}
       basicSetup={{ lineNumbers: true, foldGutter: true, highlightActiveLine: true }}
-      aria-label="Code editor"
     />
   );
 }

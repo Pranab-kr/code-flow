@@ -141,7 +141,11 @@ export function FlowCanvas({
       panOnDrag={interactive}
       zoomOnScroll={interactive}
       proOptions={{ hideAttribution: false }}
-      aria-label={interactive ? `Control flow diagram for ${graph.name}` : undefined}
+      aria-label={
+        interactive
+          ? `Control flow diagram for ${graph.name}, ${graph.nodes.length} nodes`
+          : undefined
+      }
       aria-hidden={!interactive || undefined}
     >
       <Background gap={24} size={1} color="var(--color-rule)" />

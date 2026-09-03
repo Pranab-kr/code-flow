@@ -17,7 +17,7 @@ export function HeroCanvas() {
   return (
     <figure className="hero__map" aria-label="Diagram of binary search, derived from its source">
       <p className="hero__orientation">Source → branches and loops → diagram</p>
-      <div className="hero__canvas" aria-hidden="true">
+      <div className="hero__canvas" aria-hidden="true" inert>
         <FlowCanvas graph={baked.graph} layout={baked.layout} interactive={false} />
       </div>
       <p className="visually-hidden">

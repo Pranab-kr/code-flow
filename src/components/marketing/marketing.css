@@ -339,6 +339,7 @@
 }
 .hero__caption-link {
   color: var(--color-accent);
+  text-decoration: underline;
   text-underline-offset: 2px;
 }
 .hero__caption-link:focus-visible {
