@@ -16,6 +16,7 @@ import './canvas.css';
 import './AnnotationNode.css';
 import { IRNodeView } from './IRNodeView';
 import { AnnotationNode } from './AnnotationNode';
+import { ElkEdge } from './ElkEdge';
 import { toReactFlow, type FlowNode } from './toReactFlow';
 import type { Annotation } from '@/lib/annotations';
 import type { FunctionGraph } from '@/lib/ir/types';
@@ -23,6 +24,9 @@ import type { LaidOutGraph } from '@/lib/layout/types';
 
 // Module scope: a fresh object each render would remount every node.
 const nodeTypes = { ir: IRNodeView, annotation: AnnotationNode };
+// One custom edge type drawing ELK's routed points (trap 12). Registered here,
+// so it cannot go unregistered the way a per-edge type string could.
+const edgeTypes = { elk: ElkEdge };
 const MINIMAP_THRESHOLD = 30;
 
 interface Props {
@@ -31,8 +35,12 @@ interface Props {
   overrides?: Record<string, { x: number; y: number }>;
   /** Sticky notes: user-owned, never re-derived, surviving every re-parse. */
   annotations?: Annotation[];
-  /** Called with the 1-based source line when an IR node is clicked. */
-  onNodeClick?: (startLine: number) => void;
+  /**
+   * Called with the 1-based source line AND the structural node id when an IR
+   * node is clicked. The id is second and optional, so existing single-argument
+   * callers keep working.
+   */
+  onNodeClick?: (startLine?: number, nodeId?: string) => void;
   /** Called when a drag finishes. Absent in the demo, where nothing persists. */
   onNodeMoved?: (nodeId: string, x: number, y: number) => void;
   onAnnotationMoved?: (id: string, x: number, y: number) => void;
@@ -92,7 +100,7 @@ export function FlowCanvas({
 
   const handleClick: NodeMouseHandler = (_, node) => {
     const span = (node.data as { span?: { startLine: number } }).span;
-    if (span) onNodeClick?.(span.startLine);
+    if (span) onNodeClick?.(span.startLine, node.id);
   };
 
   // Persist on drag STOP, not on every position change: a single drag emits
@@ -112,6 +120,7 @@ export function FlowCanvas({
       nodes={nodes}
       edges={computed.edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onNodeClick={handleClick}
       onNodeDragStop={handleDragStop}

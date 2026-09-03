@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toReactFlow } from './toReactFlow';
+import { toReactFlow, type RFEdge } from './toReactFlow';
 import type { Annotation } from '@/lib/annotations';
 import type { FunctionGraph, IRNode } from '@/lib/ir/types';
 import type { LaidOutGraph } from '@/lib/layout/types';
@@ -68,10 +68,13 @@ describe('toReactFlow', () => {
     expect(edges.find((e) => e.id === 'e1')!.className).toContain('cf-edge-true');
   });
 
-  it('uses only BUILT-IN edge types, so no edgeTypes map is required', () => {
+  it('uses the elk edge type, registered by FlowCanvas', () => {
+    // Trap 12: ELK-routed points are the single source of routing truth, so the
+    // canvas renders them through a custom edge instead of letting React Flow
+    // re-route handle-to-handle (which export never sees).
     const { edges } = toReactFlow(g, layout);
-    const builtin = new Set(['default', 'straight', 'step', 'smoothstep', undefined]);
-    for (const e of edges) expect(builtin.has(e.type)).toBe(true);
+    expect(edges).toHaveLength(3);
+    for (const e of edges) expect(e.type).toBe('elk');
   });
 
   it('marks back edges as non-animated', () => {
@@ -106,6 +109,59 @@ describe('toReactFlow', () => {
     };
     const d = toReactFlow(withDead, withLayout).nodes.find((n) => n.id === 'd')!;
     expect(d.data.unsupported).toBe('unreachable');
+  });
+});
+
+describe('toReactFlow ELK-routed edges', () => {
+  const routed: LaidOutGraph = {
+    ...layout,
+    edges: [
+      { id: 'e0', points: [{ x: 50, y: 40 }, { x: 60, y: 80 }] },
+      { id: 'e1', points: [{ x: 60, y: 130 }, { x: 60, y: 200 }] },
+      // A back edge looping around the side, as ELK routes it.
+      { id: 'e2', points: [{ x: 10, y: 200 }, { x: 200, y: 200 }, { x: 10, y: 40 }] },
+    ],
+  };
+
+  // RFEdge.data is optional in v12, so narrow once here rather than at every site.
+  function pointsOf(edges: RFEdge[], id: string) {
+    const e = edges.find((x) => x.id === id);
+    if (!e) throw new Error(`missing edge ${id}`);
+    return e.data?.points;
+  }
+
+  it('carries ELK-routed points in edge data, so canvas and export agree', () => {
+    const { edges } = toReactFlow(g, routed);
+    expect(pointsOf(edges, 'e2')).toEqual([
+      { x: 10, y: 200 },
+      { x: 200, y: 200 },
+      { x: 10, y: 40 },
+    ]);
+  });
+
+  it('drops points when an endpoint was dragged, so React Flow re-routes live', () => {
+    // Static points would freeze the edge at the pre-drag geometry. A dragged
+    // endpoint opts back into live routing; untouched edges keep ELK routing.
+    const { edges } = toReactFlow(g, routed, { a: { x: 999, y: 888 } });
+    expect(pointsOf(edges, 'e0')).toBeUndefined();
+    expect(pointsOf(edges, 'e2')).toBeUndefined();
+    expect(pointsOf(edges, 'e1')).toEqual([
+      { x: 60, y: 130 },
+      { x: 60, y: 200 },
+    ]);
+  });
+
+  it('omits points for edges ELK did not route', () => {
+    const { edges } = toReactFlow(g, layout);
+    for (const e of edges) expect(pointsOf(edges, e.id)).toBeUndefined();
+  });
+
+  it('keeps points serializable, which is the channel export reads', () => {
+    const { edges } = toReactFlow(g, routed);
+    const roundTripped = JSON.parse(JSON.stringify(edges)) as RFEdge[];
+    expect(pointsOf(roundTripped, 'e2')).toEqual(
+      routed.edges.find((r) => r.id === 'e2')!.points,
+    );
   });
 });
 

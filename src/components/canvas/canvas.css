@@ -19,7 +19,10 @@
     opacity var(--dur-mid) var(--ease-out);
 }
 
-/* Decision nodes: a rotated square behind the text. Shape, not colour. */
+/* Decision nodes: a true rhombus drawn as an SVG polygon stretched over the
+ * box — the same full-box rhombus the export serializer draws, so canvas and
+ * export agree at any aspect ratio. (A 45deg-rotated rectangle rendered wide
+ * boxes as diagonal bars: trap 12.) Text stays horizontal above it. */
 .cf-node[data-kind='branch'],
 .cf-node[data-kind='switch'] {
   border-color: transparent;
@@ -28,11 +31,18 @@
 .cf-node__diamond {
   position: absolute;
   inset: 0;
-  background: var(--color-node);
-  border: 1px solid var(--color-node-brdr);
-  transform: rotate(45deg) scale(0.72);
-  border-radius: var(--radius-sm);
+  width: 100%;
+  height: 100%;
   z-index: 0;
+}
+.cf-node__diamond-shape {
+  fill: var(--color-node);
+  stroke: var(--color-node-brdr);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.cf-node[data-unreachable='true'] .cf-node__diamond-shape {
+  stroke-dasharray: 6 3;
 }
 .cf-node__body {
   position: relative;

@@ -27,7 +27,17 @@ export function IRNodeView({ data, selected }: NodeProps<RFNode>) {
     >
       <Handle type="target" position={Position.Top} />
 
-      {isDecision && <span className="cf-node__diamond" aria-hidden="true" />}
+      {isDecision && (
+        <svg
+          className="cf-node__diamond"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <polygon points="50,0 100,50 50,100 0,50" className="cf-node__diamond-shape" />
+        </svg>
+      )}
 
       <div className="cf-node__body">
         <span className="cf-node__kind">

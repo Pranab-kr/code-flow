@@ -18,6 +18,16 @@ export interface IRNodeData extends Record<string, unknown> {
 
 export interface IREdgeData extends Record<string, unknown> {
   kind: EdgeKind;
+  /**
+   * ELK-routed polyline, start -> bends -> end in flow coordinates.
+   *
+   * Trap 12: this is the single routing truth shared with export
+   * (`ExportEdge.points` reads it). Absent when ELK did not route the edge or
+   * when an endpoint was dragged — a dragged endpoint opts back into React
+   * Flow's live routing, since static points would freeze the edge at the
+   * pre-drag geometry.
+   */
+  points?: { x: number; y: number }[];
 }
 
 export type RFNode = Node<IRNodeData, 'ir'>;
@@ -51,11 +61,12 @@ function edgeClass(kind: EdgeKind): string {
   return `cf-edge cf-edge-${kind}`;
 }
 
-/** Built-in types only, so no edgeTypes map is needed and none can go unregistered. */
-function edgeType(kind: EdgeKind): 'default' | 'smoothstep' {
-  // Back edges curve, so a loop reads as a loop at a glance.
-  return kind === 'back' ? 'default' : 'smoothstep';
-}
+/**
+ * Every edge renders through the custom 'elk' type (registered by FlowCanvas),
+ * which draws ELK's routed points. There is exactly one edge type, so none can
+ * go unregistered.
+ */
+const ELK_EDGE_TYPE = 'elk' as const;
 
 export function toReactFlow(
   g: FunctionGraph,
@@ -90,19 +101,27 @@ export function toReactFlow(
   });
 
   const known = new Set(nodes.map((n) => n.id));
+  const routed = new Map(layout.edges.map((r) => [r.id, r.points]));
   const edges: RFEdge[] = g.edges
     .filter((e) => known.has(e.source) && known.has(e.target))
-    .map((e) => ({
-      id: e.id,
-      source: e.source,
-      target: e.target,
-      type: edgeType(e.kind),
-      className: edgeClass(e.kind),
-      // Motion budget is spent on node-settle; edges never animate.
-      animated: false,
-      ...(e.label ? { label: e.label } : {}),
-      data: { kind: e.kind },
-    }));
+    .map((e) => {
+      const pts = routed.get(e.id);
+      const dragged = overrides[e.source] !== undefined || overrides[e.target] !== undefined;
+      return {
+        id: e.id,
+        source: e.source,
+        target: e.target,
+        type: ELK_EDGE_TYPE,
+        className: edgeClass(e.kind),
+        // Motion budget is spent on node-settle; edges never animate.
+        animated: false,
+        ...(e.label ? { label: e.label } : {}),
+        data: {
+          kind: e.kind,
+          ...(pts && pts.length >= 2 && !dragged ? { points: pts } : {}),
+        },
+      };
+    });
 
   // Sticky notes are NOT IR nodes: no structural id, never re-derived from a
   // parse, so a re-parse cannot drop them. They travel alongside the graph and
