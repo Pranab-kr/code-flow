@@ -10,15 +10,16 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 
 | | |
 |---|---|
-| **Last updated** | 2026-09-01 |
+| **Last updated** | 2026-09-03 |
 | **Phase** | P1 (of 4) — foundation |
 | **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
 | **Plan 3** | **All 4 tasks done. Smoke-tested in a real browser 2026-09-01.** |
-| **Tests** | 224 unit + 25 integration passing · lint clean · `tsc --noEmit` clean |
+| **Plan 4** | Task 1 done (`graphToSvg` + 11 tests). Task 2 raster export next. |
+| **Tests** | 235 unit + 25 integration passing · lint clean · `tsc --noEmit` clean |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 4 Task 1: SVG serialization** (`docs/superpowers/plans/2026-09-01-p1-plan4-export.md`). Start by reading Task 1 Step 1 — it says *not* to use `html-to-image`, and says why. Two loose ends first, both small: commit the elkjs worker fix if still uncommitted, and decide the empty-canvas copy question in trap 10. |
+| **Next action** | **Plan 4 Task 2: raster export** (`docs/superpowers/plans/2026-09-01-p1-plan4-export.md`). Still open before Task 3: the empty-canvas copy product call (trap 10b). |
 
 ---
 
@@ -143,8 +144,8 @@ back edges dashed and pointing the right way.
 
 | Task | Deliverable | State |
 |---|---|---|
-| 1 | `graphToSvg` from the IR + tests | ⬜ **next** |
-| 2 | Raster export (PNG/JPEG via canvas) | ⬜ |
+| 1 | `graphToSvg` from the IR + tests | ✅ `111106b` (11 tests) |
+| 2 | Raster export (PNG/JPEG via canvas) | ⬜ **next** |
 | 3 | Export UI, 3 formats, all 8 states | ⬜ |
 | 4 | Sticky notes | ⬜ |
 
@@ -471,6 +472,17 @@ and announces the choice; ambiguous text leaves the current selection unchanged.
 switch is not client-only state. `saveSource` receives the selected language with the source,
 validates it, writes it to the new snapshot, and updates `projects.language` in the same save
 path so parsing, server analysis, listings, and reloads cannot disagree.
+
+### 2026-09-03 — SVG export is drawn from geometry, with layout passed in
+`src/lib/export/toSvg.ts` takes `RFNode`/`ExportEdge` plus an optional `layout:
+LaidOutGraph`. The plan's `SvgOptions` lists no layout field, but Step 4 requires routed
+`points` when present — so per-edge `points` win, then `layout.edges` by id, then a
+center-to-center straight-line fallback drawn *under* the nodes (node fill hides the
+interior segment, so it reads as border-to-border). Unrouted-test edges stay deterministic
+with no layout argument. Two deliberate exceptions: `background: 'white'` emits `#ffffff`
+literally (an explicit user choice for slides, not a theme color — everything else is read
+from computed tokens), and kind captions (`if`/`switch`/`return`/`throw`/`while ↻`) are
+rendered in addition to shapes, matching `IRNodeView`.
 
 ---
 
