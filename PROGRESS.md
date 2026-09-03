@@ -15,9 +15,10 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
-| **Tests** | 223 unit + 25 integration passing · lint clean · `tsc --noEmit` clean · build succeeds |
+| **Plan 3** | **All 4 tasks done. Smoke-tested in a real browser 2026-09-01.** |
+| **Tests** | 224 unit + 25 integration passing · lint clean · `tsc --noEmit` clean |
 | **Blocked on** | Nothing. |
-| **Next action** | **Plan 4: export and sticky notes.** Plan 3 is complete; first manually smoke-test all three picker paths in a browser. |
+| **Next action** | **Plan 4 Task 1: SVG serialization** (`docs/superpowers/plans/2026-09-01-p1-plan4-export.md`). Start by reading Task 1 Step 1 — it says *not* to use `html-to-image`, and says why. Two loose ends first, both small: commit the elkjs worker fix if still uncommitted, and decide the empty-canvas copy question in trap 10. |
 
 ---
 
@@ -59,11 +60,32 @@ authoritative graph.
 often never arrives without custom SMTP. Confirm a test user via the admin API, or turn off
 Authentication → Sign In / Providers → Confirm email.
 
-## Next up
+## Next up — Plan 4, Task 1: SVG serialization
 
-Plan 3 is complete. Before starting Plan 4, manually smoke-test project creation and pasted
-Python, C++, and Java in the browser; automated detector, adapter, isomorphism, build, and
-persistence typing checks are green, but this session did not run an interactive browser.
+Plan: `docs/superpowers/plans/2026-09-01-p1-plan4-export.md`. Four tasks: SVG serialization,
+raster export, export UI, sticky notes. Plan 2 is done, so the notes prerequisite is met.
+
+**Read Task 1 Step 1 before writing any code.** It rules out `html-to-image` / `dom-to-image`
+and explains why: React Flow wraps custom node HTML in `foreignObject` inside a transformed
+container, and web fonts drop. Draw the SVG from the IR — we already hold geometry and routed
+edge points, and that is testable without a DOM. Note Step 1 is a *decision* step with nothing
+to implement; the first failing test is Step 2.
+
+Three constraints from the plan that are easy to miss:
+- **jpg and jpeg are one format.** Three options total: PNG, JPEG, SVG. Never present four.
+- Export reads **computed** token values. No hardcoded hex, ever (see `CLAUDE.md` Styling).
+- A dark diagram on a light slide needs a light-background option, **defaulted on for JPEG**,
+  which has no transparency.
+
+**Two small loose ends first:**
+
+1. **Commit the elkjs worker fix** if `git status` still shows it: `src/lib/layout/elk.ts` plus
+   `src/lib/layout/elk-worker-context.test.ts`. See trap 10 and the decision-log entry.
+2. **Decide the empty-canvas copy** (trap 10b). A product call, deliberately left open.
+
+The Plan 3 browser smoke test this section used to ask for **is done** (2026-09-01): all three
+paste paths detect correctly and render 10/10/7 nodes, and the manual picker override behaves.
+It found the elkjs bug below, which no automated test could see.
 
 ---
 
@@ -103,6 +125,29 @@ database, but not yet through a browser.
 | 3 | Cross-language isomorphism for four algorithms | ✅ 12 fixtures + 4 passing comparisons |
 | 4 | Language detection and honest picker wiring | ✅ detector + creation/workbench pickers + persisted language |
 
+**Smoke-tested in a real browser, 2026-09-01** (this is what the board above could not prove):
+
+| Path | Result |
+|---|---|
+| `/demo` Python starter | 10 nodes, status `ready` |
+| Paste C++ | picker → `cpp`, "Detected C++", 10 nodes |
+| Paste Java | picker → `java`, "Detected Java", 10 nodes |
+| Paste Python | picker → `python`, "Detected Python", 7 nodes |
+| Manual override: Java on Python source | 5 syntax errors, canvas falls to empty state (see trap 10b) |
+
+Zero console errors. The C++ screenshot also confirms what earlier sessions listed as
+unverifiable by hand: diamonds for branches, `WHILE ↻` doubled rule, filled cap on returns,
+back edges dashed and pointing the right way.
+
+## Task board — Plan 4
+
+| Task | Deliverable | State |
+|---|---|---|
+| 1 | `graphToSvg` from the IR + tests | ⬜ **next** |
+| 2 | Raster export (PNG/JPEG via canvas) | ⬜ |
+| 3 | Export UI, 3 formats, all 8 states | ⬜ |
+| 4 | Sticky notes | ⬜ |
+
 ## Bugs found by reviewing output rather than trusting green tests
 
 Worth recording, because each would have shipped as a silent wrong answer:
@@ -126,6 +171,11 @@ Worth recording, because each would have shipped as a silent wrong answer:
    a peer-dependency hash. Replaced with a `node:fs` reader.
 6. **Diamonds and plain blocks shared one min-width**, so a short condition rendered exactly
    as wide as a short statement and the rotated square clipped its own text.
+7. **The diagram never rendered in ANY browser** — dev or production — and 223 green tests plus
+   correct `graphs` rows in Postgres said otherwise. `new ELK()` throws
+   `_Worker is not a constructor` inside a web worker, so the canvas hung on its skeleton
+   forever. Found in the first 20 seconds of the Plan 3 browser smoke test, which is the whole
+   argument for running one. See the decision-log entry and trap 10.
 
 ## Plan verification (2026-08-31)
 
@@ -382,6 +432,39 @@ golden now enforce the correct target.
 Python, C++, and Java. All four comparisons pass without adapter changes: node kinds, edge
 kinds, and exit counts match across all three languages.
 
+### 2026-09-01 — ELK is constructed with a `document` shim, and the shim is removed again
+`elk.bundled.js` inlines `elk-worker.min.js`, which decides **at evaluation time** whether it
+*is* a worker script:
+
+```js
+if (typeof document === 'undefined' && typeof self !== 'undefined') {
+  self.onmessage = dispatch;                     // become the solver
+} else if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { default: j, Worker: j };    // export the fake Worker
+}
+```
+
+Inside our parse worker both conditions of the first branch hold, so it never reaches the
+export branch, `require('./elk-worker.min.js').Worker` is undefined, and `new ELK()` at
+`src/lib/layout/elk.ts` module scope throws `_Worker is not a constructor`. **The canvas hung
+on its skeleton in every browser, dev and production, from Task 6 until now.**
+
+`createElk()` sets `globalThis.document = {}` only when it detects worker scope, constructs,
+and deletes it in a `finally`. Browserify evaluates that inner module **lazily**, on the
+`require` inside the `ELKNode` constructor, so the shim only has to span construction — and
+leaving a fake `document` in a worker's global scope would mislead anything else that
+feature-detects.
+
+**Do not "simplify" this to an unconditional `new ELK()`.** Do not replace it with
+`elkjs/lib/elk-api.js` plus `workerFactory: () => new Worker('./elk-worker.min.js')` either:
+that variant does work (verified in a real worker, correct coordinates), but it spawns a second
+worker per parse and needs a separately served script URL, which Turbopack will not produce for
+a file inside `node_modules`.
+
+Annotate the type as `InstanceType<typeof ELK>`, not `ELK` — elkjs's default export is a value,
+and writing `: ELK` produces a confusing cascade of implicit-`any` errors elsewhere in the file
+rather than an error at the annotation.
+
 ### 2026-09-01 — Language changes persist with the source snapshot
 Paste detection is conservative: strong Python, C++, or Java evidence selects that language
 and announces the choice; ambiguous text leaves the current selection unchanged. A language
@@ -445,6 +528,43 @@ Things a future agent will otherwise trip over:
    measure. Plan 2 moves that behind the durable pipeline.
 6. **Do not proceed past a failing RLS test.** A negative test that passes when it should fail
    means the policy is wrong, not that the test is flaky.
+
+   *(The numbering above repeats — 4b, two 6s. Left as found; the content is what matters.)*
+
+10. **A library can behave differently INSIDE a web worker, and neither jsdom nor Node will
+    show you.** The elkjs bug (bugs list #7) is the case: jsdom defines `document`, so the unit
+    suite could not see it; Node defines neither `document` nor `self`, so the Inngest job could
+    not either. Between them they cover neither axis of the worker's global shape — no
+    `document`, but a `self`.
+
+    `src/lib/layout/elk-worker-context.test.ts` now pins it with `@vitest-environment node`
+    plus `globalThis.self = globalThis`. **Any new dependency imported by
+    `src/workers/parse.worker.ts` deserves the same treatment.** Feature-detecting libraries
+    are common, and the failure mode is a canvas that hangs on its skeleton forever while every
+    test stays green.
+
+    This is trap 5 one layer over. There, local state masked a serverless defect; here, two test
+    environments between them masked a browser defect. **Drive the real app in a real browser
+    before believing a UI path works.**
+
+10b. **Deliberate language mismatch clears the canvas** — product decision needed, deliberately
+    left open. Selecting Java while the editor holds Python yields 5 syntax errors, zero
+    functions, and the canvas falls to "No functions found yet. Paste a function and its
+    diagram appears here."
+
+    Not the silent-wrong-answer class: the status bar is honest and it recovers on switching
+    back. But the copy misdescribes the situation — there *is* a function, it just does not
+    parse as Java — and spec §11 says degrade, never blank, while the previous good graph does
+    get cleared. Options: keep the last good graph dimmed with a "not valid Java" notice, or
+    keep the blanking and fix only the wording. **Decide before Plan 4 Task 3** builds an
+    export button that would otherwise be enabled over an empty canvas.
+
+11. **Playwright is listed in the verify commands but is NOT installed** — no
+    `playwright.config.*`, no devDependency. `pnpm exec playwright test` fails with
+    `Command "playwright" not found`. The 2026-09-01 browser smoke test ran a throwaway
+    `playwright-core` in `/tmp` against the Chromium already in `~/.cache/ms-playwright`.
+    Either install and configure Playwright properly (it is still owed from Plan 1 Task 7) or
+    stop listing that command as a gate.
 
 ---
 
