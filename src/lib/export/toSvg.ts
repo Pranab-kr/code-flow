@@ -15,7 +15,7 @@
  * grayscale.
  */
 
-import type { RFEdge, RFNode } from '@/components/canvas/toReactFlow';
+import type { FlowNode, RFEdge } from '@/components/canvas/toReactFlow';
 import type { EdgeKind, NodeKind } from '@/lib/ir/types';
 import type { LaidOutGraph } from '@/lib/layout/types';
 
@@ -27,7 +27,8 @@ export interface SvgPoint {
 export type ExportEdge = RFEdge & { points?: SvgPoint[] };
 
 export interface SvgOptions {
-  nodes: RFNode[];
+  /** IR nodes plus sticky notes (`type: 'annotation'`); notes render as notes. */
+  nodes: FlowNode[];
   edges: ExportEdge[];
   tokens: Record<string, string>;
   background: 'transparent' | 'paper' | 'white';
@@ -104,7 +105,7 @@ interface Placed {
   cy: number;
 }
 
-function placedOf(n: RFNode): Placed {
+function placedOf(n: FlowNode): Placed {
   const w = typeof n.width === 'number' && Number.isFinite(n.width) ? n.width : FALLBACK_W;
   const h = typeof n.height === 'number' && Number.isFinite(n.height) ? n.height : FALLBACK_H;
   const x = n.position.x;
@@ -174,6 +175,7 @@ export function graphToSvg(opts: SvgOptions): string {
   const warn = tok(tokens, '--color-warn', danger);
   const canvasBg = tok(tokens, '--color-canvas', 'white');
   const paper3 = tok(tokens, '--color-paper-3', nodeFill);
+  const noteFill = tok(tokens, '--color-paper-2', nodeFill);
   const fontMono = tok(tokens, '--font-mono', 'monospace');
 
   const at = new Map<string, Placed>();
@@ -263,6 +265,41 @@ export function graphToSvg(opts: SvgOptions): string {
   nodes.forEach((n, i) => {
     const p = at.get(n.id);
     if (!p) return;
+    if (n.type === 'annotation') {
+      // Sticky note: the same note shape as the canvas (rect + thick top
+      // rule), so the export reads as the same diagram. The top rule — not
+      // colour — is what marks it at a glance in grayscale.
+      const raw = typeof n.data.body === 'string' ? n.data.body : '';
+      const noteLines = raw.split('\n');
+      const noteShown = noteLines.slice(0, 6);
+      const noteExtra = noteLines.length - noteShown.length;
+      parts.push('<g class="cf-note">');
+      parts.push(
+        `<rect x="${fmt(p.x)}" y="${fmt(p.y)}" width="${fmt(p.w)}" height="${fmt(p.h)}" rx="4" fill="${esc(noteFill)}" stroke="${esc(nodeBorder)}" stroke-width="1.5"/>`,
+      );
+      parts.push(
+        `<rect x="${fmt(p.x)}" y="${fmt(p.y)}" width="${fmt(p.w)}" height="4" fill="${esc(warn)}"/>`,
+      );
+      parts.push(`<g clip-path="url(#cf-clip-${i})">`);
+      parts.push(
+        `<text x="${fmt(p.x + 12)}" y="${fmt(p.y + 22)}" font-family="${esc(fontMono)}" font-size="9" fill="${esc(ink3)}" xml:space="preserve">note</text>`,
+      );
+      let cursor = p.y + 38;
+      for (const s of noteShown) {
+        parts.push(
+          `<text x="${fmt(p.x + 12)}" y="${fmt(cursor)}" font-family="${esc(fontMono)}" font-size="12" fill="${esc(ink)}" xml:space="preserve">${esc(s)}</text>`,
+        );
+        cursor += 14;
+      }
+      if (noteExtra > 0) {
+        parts.push(
+          `<text x="${fmt(p.x + 12)}" y="${fmt(cursor)}" font-family="${esc(fontMono)}" font-size="12" fill="${esc(ink3)}" xml:space="preserve">+${noteExtra} more</text>`,
+        );
+      }
+      parts.push('</g>');
+      parts.push('</g>');
+      return;
+    }
     const kind = n.data.kind;
     const unreachable = n.data.unsupported === 'unreachable';
     const loopKind = typeof n.data.loopKind === 'string' ? n.data.loopKind : undefined;

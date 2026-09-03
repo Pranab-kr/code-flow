@@ -13,36 +13,65 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './canvas.css';
+import './AnnotationNode.css';
 import { IRNodeView } from './IRNodeView';
-import { toReactFlow, type RFNode } from './toReactFlow';
+import { AnnotationNode } from './AnnotationNode';
+import { toReactFlow, type FlowNode } from './toReactFlow';
+import type { Annotation } from '@/lib/annotations';
 import type { FunctionGraph } from '@/lib/ir/types';
 import type { LaidOutGraph } from '@/lib/layout/types';
 
 // Module scope: a fresh object each render would remount every node.
-const nodeTypes = { ir: IRNodeView };
+const nodeTypes = { ir: IRNodeView, annotation: AnnotationNode };
 const MINIMAP_THRESHOLD = 30;
 
 interface Props {
   graph: FunctionGraph;
   layout: LaidOutGraph;
   overrides?: Record<string, { x: number; y: number }>;
-  /** Called with the 1-based source line when a node is clicked. */
+  /** Sticky notes: user-owned, never re-derived, surviving every re-parse. */
+  annotations?: Annotation[];
+  /** Called with the 1-based source line when an IR node is clicked. */
   onNodeClick?: (startLine: number) => void;
   /** Called when a drag finishes. Absent in the demo, where nothing persists. */
   onNodeMoved?: (nodeId: string, x: number, y: number) => void;
+  onAnnotationMoved?: (id: string, x: number, y: number) => void;
+  onAnnotationSave?: (id: string, body: string) => void;
+  onAnnotationDelete?: (id: string) => void;
 }
 
 export function FlowCanvas({
   graph,
   layout,
   overrides,
+  annotations,
   onNodeClick,
   onNodeMoved,
+  onAnnotationMoved,
+  onAnnotationSave,
+  onAnnotationDelete,
 }: Props) {
-  const computed = useMemo(
-    () => toReactFlow(graph, layout, overrides),
-    [graph, layout, overrides],
-  );
+  const computed = useMemo(() => {
+    const { nodes, edges } = toReactFlow(graph, layout, overrides, annotations);
+    // Callbacks travel via node data: React Flow instantiates node components
+    // itself, so there is no other channel. toReactFlow stays pure (and its
+    // output stays serializable for export) by not setting these itself.
+    return {
+      edges,
+      nodes: nodes.map((n) =>
+        n.type === 'annotation'
+          ? {
+              ...n,
+              data: {
+                ...n.data,
+                ...(onAnnotationSave ? { onSave: onAnnotationSave } : {}),
+                ...(onAnnotationDelete ? { onDelete: onAnnotationDelete } : {}),
+              },
+            }
+          : n,
+      ),
+    };
+  }, [graph, layout, overrides, annotations, onAnnotationSave, onAnnotationDelete]);
 
   // Local node state so dragging is smooth, re-derived whenever the graph,
   // layout, or saved overrides change.
@@ -50,14 +79,14 @@ export function FlowCanvas({
   // Adjusted during render rather than in an effect: React documents this for
   // "resetting state when a prop changes", and it avoids the extra render pass
   // an effect would cost on every re-parse.
-  const [nodes, setNodes] = useState<RFNode[]>(computed.nodes);
+  const [nodes, setNodes] = useState<FlowNode[]>(computed.nodes);
   const [seen, setSeen] = useState(computed.nodes);
   if (seen !== computed.nodes) {
     setSeen(computed.nodes);
     setNodes(computed.nodes);
   }
 
-  const onNodesChange = useCallback((changes: NodeChange<RFNode>[]) => {
+  const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => {
     setNodes((current) => applyNodeChanges(changes, current));
   }, []);
 
@@ -70,8 +99,12 @@ export function FlowCanvas({
   // dozens of intermediate positions, and only where it lands is intent.
   // v12 types drag handlers as OnNodeDrag, which passes a DOM event rather than
   // React's synthetic one — NodeMouseHandler does not fit here.
-  const handleDragStop: OnNodeDrag<RFNode> = (_, node) => {
-    onNodeMoved?.(node.id, node.position.x, node.position.y);
+  const handleDragStop: OnNodeDrag<FlowNode> = (_, node) => {
+    if (node.type === 'annotation') {
+      onAnnotationMoved?.(node.id, node.position.x, node.position.y);
+    } else {
+      onNodeMoved?.(node.id, node.position.x, node.position.y);
+    }
   };
 
   return (

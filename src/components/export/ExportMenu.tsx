@@ -10,6 +10,7 @@ export interface ExportRequest {
   format: ExportFormat;
   scale: number;
   background: ExportBackground;
+  includeNotes: boolean;
 }
 
 interface ExportMenuProps {
@@ -34,8 +35,8 @@ const FORMAT_LABEL: Record<ExportFormat, string> = {
  *
  * Presentational: it reports what the user chose and leaves tokens, pixels,
  * and downloads to the Workbench, which owns the graph. jpg and jpeg are one
- * format — a single JPEG option writing `.jpg`. Sticky notes have no toggle
- * yet: annotations land in Task 4, and a toggle for them today would lie.
+ * format — a single JPEG option writing `.jpg`. Sticky notes are included
+ * behind a toggle (Task 4): the file matches the screen by default.
  *
  * All 8 states: default, hover, focus-visible, active, disabled (nothing to
  * export, or an export already running), loading (rasterizing), error (the
@@ -47,6 +48,7 @@ export function ExportMenu({ canExport, whyDisabled, exporting, error, onExport 
   const [format, setFormat] = useState<ExportFormat>('png');
   const [scale, setScale] = useState<number>(2);
   const [background, setBackground] = useState<ExportBackground>('paper');
+  const [includeNotes, setIncludeNotes] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
   const panelId = useId();
 
@@ -71,7 +73,7 @@ export function ExportMenu({ canExport, whyDisabled, exporting, error, onExport 
   };
 
   const download = () => {
-    onExport({ format, scale: isSvg ? 1 : scale, background });
+    onExport({ format, scale: isSvg ? 1 : scale, background, includeNotes });
   };
 
   return (
@@ -161,6 +163,16 @@ export function ExportMenu({ canExport, whyDisabled, exporting, error, onExport 
               <p className="cf-export__note">JPEG has no transparency — white or paper only.</p>
             )}
           </fieldset>
+
+          <label className="cf-export__option">
+            <input
+              type="checkbox"
+              checked={includeNotes}
+              disabled={exporting}
+              onChange={(event) => setIncludeNotes(event.target.checked)}
+            />
+            <span>Include sticky notes</span>
+          </label>
 
           {notice && (
             <p className="cf-export__note" role="status">

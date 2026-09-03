@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { toReactFlow } from './toReactFlow';
+import type { Annotation } from '@/lib/annotations';
 import type { FunctionGraph, IRNode } from '@/lib/ir/types';
 import type { LaidOutGraph } from '@/lib/layout/types';
 
@@ -105,5 +106,64 @@ describe('toReactFlow', () => {
     };
     const d = toReactFlow(withDead, withLayout).nodes.find((n) => n.id === 'd')!;
     expect(d.data.unsupported).toBe('unreachable');
+  });
+});
+
+describe('toReactFlow annotations', () => {
+  const notes: Annotation[] = [
+    { id: 'note-1', nodeId: null, body: 'remember this', x: 10, y: 20 },
+    { id: 'note-2', nodeId: 'b', body: 'about the branch', x: 30, y: 40 },
+  ];
+
+  it('emits annotation nodes alongside IR nodes', () => {
+    const { nodes } = toReactFlow(g, layout, {}, notes);
+    expect(nodes).toHaveLength(5);
+    const n1 = nodes.find((n) => n.id === 'note-1')!;
+    expect(n1.type).toBe('annotation');
+    expect(n1.position).toEqual({ x: 10, y: 20 });
+  });
+
+  it('carries body and anchor through, with no structural IR id', () => {
+    const { nodes } = toReactFlow(g, layout, {}, notes);
+    const n2 = nodes.find((n) => n.id === 'note-2')!;
+    expect(n2.type).toBe('annotation');
+    if (n2.type !== 'annotation') throw new Error('expected annotation node');
+    expect(n2.data.body).toBe('about the branch');
+    expect(n2.data.nodeId).toBe('b');
+    expect((n2.data as Record<string, unknown>).kind).toBeUndefined();
+  });
+
+  it('marks annotation nodes draggable with their own footprint', () => {
+    const { nodes } = toReactFlow(g, layout, {}, notes);
+    const n1 = nodes.find((n) => n.id === 'note-1')!;
+    expect(n1.draggable).toBe(true);
+    expect(n1.width).toBeGreaterThan(0);
+    expect(n1.height).toBeGreaterThan(0);
+  });
+
+  it('never attaches graph edges to notes', () => {
+    const { edges } = toReactFlow(g, layout, {}, notes);
+    expect(edges.map((e) => e.id).sort()).toEqual(['e0', 'e1', 'e2']);
+    for (const e of edges) {
+      expect(e.source.startsWith('note-')).toBe(false);
+      expect(e.target.startsWith('note-')).toBe(false);
+    }
+  });
+
+  it('survives a re-parse: same notes, new graph, nothing dropped', () => {
+    const regraph: FunctionGraph = {
+      ...g,
+      nodes: g.nodes.filter((n) => n.id !== 'c'),
+      edges: g.edges.filter((e) => e.id === 'e0'),
+    };
+    const { nodes } = toReactFlow(regraph, layout, {}, notes);
+    expect(nodes.filter((n) => n.type === 'annotation').map((n) => n.id).sort()).toEqual([
+      'note-1',
+      'note-2',
+    ]);
+  });
+
+  it('defaults to no notes, so existing callers are unchanged', () => {
+    expect(toReactFlow(g, layout).nodes).toHaveLength(3);
   });
 });

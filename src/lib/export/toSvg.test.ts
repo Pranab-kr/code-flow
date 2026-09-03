@@ -102,3 +102,49 @@ describe('graphToSvg', () => {
     expect(out).toContain('<svg');
   });
 });
+
+describe('graphToSvg sticky notes', () => {
+  const note = {
+    id: 'note-1',
+    type: 'annotation' as const,
+    position: { x: 300, y: 0 },
+    width: 180,
+    height: 100,
+    data: { body: 'remember the base case', nodeId: null },
+  };
+
+  it('renders the note body in the export', () => {
+    const out = graphToSvg({ nodes: [...nodes, note], edges, tokens: TOKENS, background: 'paper' });
+    expect(out).toContain('remember the base case');
+    expect(out).toContain('cf-note');
+  });
+
+  it('grows the viewBox to include notes outside the graph bounds', () => {
+    const without = graphToSvg({ nodes, edges, tokens: TOKENS, background: 'paper', padding: 20 });
+    const withNote = graphToSvg({
+      nodes: [...nodes, note],
+      edges,
+      tokens: TOKENS,
+      background: 'paper',
+      padding: 20,
+    });
+    expect(withNote).toContain('viewBox="-20 -20 520 190"');
+    expect(without).toContain('viewBox="-20 -20 240 190"');
+  });
+
+  it('escapes markup in note text', () => {
+    const evil = {
+      ...note,
+      data: { body: '</svg><script>x</script>', nodeId: null },
+    };
+    const out = graphToSvg({ nodes: [evil], edges: [], tokens: TOKENS, background: 'paper' });
+    expect(out).not.toContain('<script>');
+    expect(out).toContain('&lt;');
+  });
+
+  it('renders an empty note as a shape without throwing', () => {
+    const empty = { ...note, data: { body: '', nodeId: null } };
+    const out = graphToSvg({ nodes: [empty], edges: [], tokens: TOKENS, background: 'paper' });
+    expect(out).toContain('cf-note');
+  });
+});

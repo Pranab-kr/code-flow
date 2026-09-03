@@ -3,6 +3,13 @@ import { createServerClient } from '@/lib/supabase/server';
 import { Workbench } from '@/components/workbench/Workbench';
 import { saveSource, retryAnalysis } from '../actions';
 import { saveOverride } from './layout-actions';
+import {
+  createAnnotation,
+  deleteAnnotation,
+  moveAnnotation,
+  updateAnnotationBody,
+} from './annotation-actions';
+import type { Annotation } from '@/lib/annotations';
 import type { Language } from '@/lib/ir/types';
 
 export default async function ProjectPage({
@@ -41,6 +48,11 @@ export default async function ProjectPage({
     .eq('project_id', project.id)
     .is('orphaned_at', null);
 
+  const { data: annotationRows } = await supabase
+    .from('annotations')
+    .select('id, node_id, body, x, y')
+    .eq('project_id', project.id);
+
   // Bind the ids server-side: the client should not be able to choose which
   // project it writes to, even though RLS would also stop it.
   //
@@ -54,6 +66,18 @@ export default async function ProjectPage({
   const save = saveSource.bind(null, project.id);
   const moveNode = saveOverride.bind(null, project.id);
   const retry = retryAnalysis.bind(null, project.id);
+  const addNote = createAnnotation.bind(null, project.id);
+  const saveNote = updateAnnotationBody.bind(null, project.id);
+  const moveNote = moveAnnotation.bind(null, project.id);
+  const removeNote = deleteAnnotation.bind(null, project.id);
+
+  const initialAnnotations: Annotation[] = (annotationRows ?? []).map((r) => ({
+    id: r.id,
+    nodeId: r.node_id,
+    body: r.body,
+    x: r.x,
+    y: r.y,
+  }));
 
   return (
     <Workbench
@@ -63,6 +87,11 @@ export default async function ProjectPage({
       onSave={save}
       onNodeMoved={moveNode}
       onRetry={retry}
+      onCreateAnnotation={addNote}
+      onUpdateAnnotation={saveNote}
+      onMoveAnnotation={moveNote}
+      onDeleteAnnotation={removeNote}
+      initialAnnotations={initialAnnotations}
       initialSnapshotId={project.current_snapshot_id ?? undefined}
       initialSource={snapshot?.source ?? ''}
       initialOverrides={Object.fromEntries(

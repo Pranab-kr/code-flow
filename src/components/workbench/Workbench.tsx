@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useParse } from '@/lib/useParse';
 import { useSnapshotStatus } from '@/lib/useSnapshotStatus';
 import { detectLanguage } from '@/lib/ir/detect';
+import { shiftAnchored, type Annotation } from '@/lib/annotations';
 import { describeStatus, type SaveState } from './status';
 import type { Language } from '@/lib/ir/types';
 import './workbench.css';
@@ -43,6 +44,17 @@ interface Props {
   onNodeMoved?: (nodeId: string, x: number, y: number) => Promise<{ error?: string }>;
   /** Re-queue a failed analysis. Absent in the demo. */
   onRetry?: (snapshotId: string) => Promise<{ ok?: true; error?: string }>;
+  /** Sticky-note persistence. Absent in the demo, where notes live for the session. */
+  initialAnnotations?: Annotation[];
+  onCreateAnnotation?: (input: {
+    body: string;
+    x: number;
+    y: number;
+    nodeId: string | null;
+  }) => Promise<{ ok?: true; error?: string; annotation?: Annotation }>;
+  onUpdateAnnotation?: (id: string, body: string) => Promise<{ ok?: true; error?: string }>;
+  onMoveAnnotation?: (id: string, x: number, y: number) => Promise<{ ok?: true; error?: string }>;
+  onDeleteAnnotation?: (id: string) => Promise<{ ok?: true; error?: string }>;
 }
 
 export function Workbench({
@@ -55,6 +67,11 @@ export function Workbench({
   onSave,
   onNodeMoved,
   onRetry,
+  initialAnnotations,
+  onCreateAnnotation,
+  onUpdateAnnotation,
+  onMoveAnnotation,
+  onDeleteAnnotation,
 }: Props) {
   const [source, setSource] = useState(initialSource);
   const [selectedLanguage, setSelectedLanguage] = useState(language);
@@ -144,9 +161,94 @@ export function Workbench({
   // Keeping them here means a re-parse cannot discard an unsaved drag.
   const [positions, setPositions] = useState(initialOverrides ?? {});
 
+  // Sticky notes: user-owned, never re-derived. A re-parse replaces the graph
+  // but leaves this list untouched — that is why notes survive re-parses.
+  const [notes, setNotes] = useState<Annotation[]>(initialAnnotations ?? []);
+
+  const failNote = useCallback((error: string) => {
+    setSaveState('error');
+    setSaveError(error);
+  }, []);
+
+  const handleAddNote = useCallback(() => {
+    const cascade = notes.length % 8;
+    const input = { body: '', x: 80 + cascade * 24, y: 80 + cascade * 24, nodeId: null as string | null };
+    if (!onCreateAnnotation) {
+      // Demo: no persistence, so the note lives for the session. It still
+      // renders, drags, and exports like a stored one.
+      const id =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `note-${Date.now()}`;
+      setNotes((prev) => [...prev, { id, ...input }]);
+      return;
+    }
+    void onCreateAnnotation(input).then((result) => {
+      if (result?.annotation) setNotes((prev) => [...prev, result.annotation as Annotation]);
+      else if (result?.error) failNote(result.error);
+    });
+  }, [notes.length, onCreateAnnotation, failNote]);
+
+  const handleNoteSave = useCallback(
+    (id: string, body: string) => {
+      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, body } : n)));
+      if (!onUpdateAnnotation) return;
+      void onUpdateAnnotation(id, body).then((result) => {
+        if (result?.error) failNote(result.error);
+      });
+    },
+    [onUpdateAnnotation, failNote],
+  );
+
+  const handleNoteDelete = useCallback(
+    (id: string) => {
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+      if (!onDeleteAnnotation) return;
+      void onDeleteAnnotation(id).then((result) => {
+        if (result?.error) failNote(result.error);
+      });
+    },
+    [onDeleteAnnotation, failNote],
+  );
+
+  const handleNoteMoved = useCallback(
+    (id: string, x: number, y: number) => {
+      setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, x, y } : n)));
+      if (!onMoveAnnotation) return;
+      void onMoveAnnotation(id, x, y).then((result) => {
+        if (result?.error) failNote(result.error);
+      });
+    },
+    [onMoveAnnotation, failNote],
+  );
+
+  const fn = ir?.functions[activeFn] ?? ir?.functions[0];
+  const layout = fn ? layouts[fn.id] : undefined;
+
   const handleNodeMoved = useCallback(
     (nodeId: string, x: number, y: number) => {
+      // Anchored notes travel with their node: shift them by the same delta.
+      const old =
+        positions[nodeId] ?? layout?.nodes.find((n) => n.id === nodeId) ?? { x, y };
+      const dx = x - old.x;
+      const dy = y - old.y;
       setPositions((prev) => ({ ...prev, [nodeId]: { x, y } }));
+      if (dx !== 0 || dy !== 0) {
+        const next = shiftAnchored(notes, nodeId, dx, dy);
+        if (next !== notes) {
+          setNotes(next);
+          if (onMoveAnnotation) {
+            void Promise.all(
+              next
+                .filter((n) => n.nodeId === nodeId)
+                .map((n) => onMoveAnnotation(n.id, n.x, n.y)),
+            ).then((results) => {
+              const failed = results.find((r) => r?.error);
+              if (failed?.error) failNote(failed.error);
+            });
+          }
+        }
+      }
       if (!onNodeMoved) return;
       void onNodeMoved(nodeId, x, y).then((result) => {
         if (result?.error) {
@@ -155,11 +257,8 @@ export function Workbench({
         }
       });
     },
-    [onNodeMoved],
+    [positions, layout, notes, onNodeMoved, onMoveAnnotation, failNote],
   );
-
-  const fn = ir?.functions[activeFn] ?? ir?.functions[0];
-  const layout = fn ? layouts[fn.id] : undefined;
   const errorCount = ir?.diagnostics.filter((d) => d.severity === 'error').length ?? 0;
   const languageLabel = selectedLanguage === 'cpp' ? 'C++' : selectedLanguage === 'java' ? 'Java' : 'Python';
 
@@ -187,7 +286,8 @@ export function Workbench({
           req.format === 'jpeg' && req.background === 'transparent' ? 'white' : req.background;
         const tokens = readTokens();
         // Dragged positions are what the user sees, so they are what exports.
-        const { nodes, edges } = toReactFlow(fn, layout, positions);
+        // Notes go along when the toggle says so — excluded otherwise.
+        const { nodes, edges } = toReactFlow(fn, layout, positions, req.includeNotes ? notes : []);
         const svg = graphToSvg({ nodes, edges, layout, tokens, background });
         let blob: Blob;
         if (req.format === 'svg') {
@@ -211,7 +311,7 @@ export function Workbench({
         setExporting(false);
       }
     },
-    [fn, layout, positions, title],
+    [fn, layout, positions, notes, title],
   );
 
   const view = describeStatus({
@@ -295,6 +395,9 @@ export function Workbench({
           error={exportError}
           onExport={(req) => void handleExport(req)}
         />
+        <button type="button" className="wb__addnote" onClick={handleAddNote}>
+          Add note
+        </button>
       </header>
 
       <div className="wb__panes" data-pane={pane}>
@@ -323,8 +426,12 @@ export function Workbench({
               graph={fn}
               layout={layout}
               overrides={positions}
+              annotations={notes}
               onNodeClick={(line) => setRevealLine(line)}
               onNodeMoved={onNodeMoved ? handleNodeMoved : undefined}
+              onAnnotationMoved={handleNoteMoved}
+              onAnnotationSave={handleNoteSave}
+              onAnnotationDelete={handleNoteDelete}
             />
           )}
 

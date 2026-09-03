@@ -1,6 +1,11 @@
 import type { Edge, Node } from '@xyflow/react';
 import type { EdgeKind, FunctionGraph, IRNode, Span } from '@/lib/ir/types';
 import type { LaidOutGraph } from '@/lib/layout/types';
+import {
+  ANNOTATION_HEIGHT,
+  ANNOTATION_WIDTH,
+  type Annotation,
+} from '@/lib/annotations';
 
 export interface IRNodeData extends Record<string, unknown> {
   kind: IRNode['kind'];
@@ -17,6 +22,22 @@ export interface IREdgeData extends Record<string, unknown> {
 
 export type RFNode = Node<IRNodeData, 'ir'>;
 export type RFEdge = Edge<IREdgeData>;
+
+export interface AnnotationData extends Record<string, unknown> {
+  body: string;
+  nodeId: string | null;
+  /**
+   * Wired by FlowCanvas, not by toReactFlow (which stays pure and
+   * serializable for tests and export). The node calls these with its own id.
+   */
+  onSave?: (id: string, body: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+export type AnnotationNode = Node<AnnotationData, 'annotation'>;
+
+/** Every node the canvas can hold: derived IR nodes plus user-owned notes. */
+export type FlowNode = RFNode | AnnotationNode;
 
 /**
  * Edge styling goes through className, NOT a data attribute.
@@ -40,10 +61,11 @@ export function toReactFlow(
   g: FunctionGraph,
   layout: LaidOutGraph,
   overrides: Record<string, { x: number; y: number }> = {},
-): { nodes: RFNode[]; edges: RFEdge[] } {
+  annotations: Annotation[] = [],
+): { nodes: FlowNode[]; edges: RFEdge[] } {
   const placed = new Map(layout.nodes.map((n) => [n.id, n]));
 
-  const nodes: RFNode[] = g.nodes.flatMap((n) => {
+  const nodes: FlowNode[] = g.nodes.flatMap((n) => {
     const pos = placed.get(n.id);
     // Degrade rather than throw: a node with no layout entry is skipped.
     if (!pos) return [];
@@ -81,6 +103,22 @@ export function toReactFlow(
       ...(e.label ? { label: e.label } : {}),
       data: { kind: e.kind },
     }));
+
+  // Sticky notes are NOT IR nodes: no structural id, never re-derived from a
+  // parse, so a re-parse cannot drop them. They travel alongside the graph and
+  // survive it unchanged — that is the whole of Step 4's "re-parse survives".
+  for (const a of annotations) {
+    nodes.push({
+      id: a.id,
+      type: 'annotation',
+      position: { x: a.x, y: a.y },
+      width: ANNOTATION_WIDTH,
+      height: ANNOTATION_HEIGHT,
+      data: { body: a.body, nodeId: a.nodeId },
+      draggable: true,
+      selectable: true,
+    });
+  }
 
   return { nodes, edges };
 }

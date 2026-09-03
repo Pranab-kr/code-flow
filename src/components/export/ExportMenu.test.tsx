@@ -34,11 +34,11 @@ describe('ExportMenu', () => {
     expect(screen.getByRole('group', { name: /export options/i })).toBeInTheDocument();
   });
 
-  it('calls onExport with the default PNG 2× paper request', () => {
+  it('calls onExport with the default PNG 2× paper request, notes included', () => {
     const onExport = openMenu();
     fireEvent.click(screen.getByRole('button', { name: /download png/i }));
     const req: ExportRequest = onExport.mock.calls[0][0];
-    expect(req).toEqual({ format: 'png', scale: 2, background: 'paper' });
+    expect(req).toEqual({ format: 'png', scale: 2, background: 'paper', includeNotes: true });
   });
 
   it('disables transparent for JPEG with a reason, switching to white', () => {
@@ -92,5 +92,13 @@ describe('ExportMenu', () => {
     // Retry is pressing Download again.
     fireEvent.click(screen.getByRole('button', { name: /download png/i }));
     expect(onExport).toHaveBeenCalledTimes(1);
+  });
+
+  it('includes sticky notes by default and honours the toggle', () => {
+    const onExport = openMenu();
+    expect(screen.getByRole('checkbox', { name: /sticky notes/i })).toBeChecked();
+    fireEvent.click(screen.getByRole('checkbox', { name: /sticky notes/i }));
+    fireEvent.click(screen.getByRole('button', { name: /download png/i }));
+    expect((onExport.mock.calls[0][0] as ExportRequest).includeNotes).toBe(false);
   });
 });
