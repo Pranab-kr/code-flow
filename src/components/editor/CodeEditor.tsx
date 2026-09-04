@@ -6,19 +6,21 @@ import { EditorView } from '@codemirror/view';
 import { python } from '@codemirror/lang-python';
 import { cpp } from '@codemirror/lang-cpp';
 import { java } from '@codemirror/lang-java';
+import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import type { Extension } from '@codemirror/state';
 import type { Language } from '@/lib/ir/types';
 
 // EditorView comes from @codemirror/view, not from @uiw/react-codemirror.
 //
-// Typed as Extension[] rather than ReturnType<typeof python>: the three language
+// Typed as Extension[] rather than ReturnType<typeof python>: the four language
 // functions do not share a nominal return type, so a shared alias would reject
-// two of the three under strict mode.
+// three of the four under strict mode.
 const EXTENSIONS: Record<Language, () => Extension[]> = {
   python: () => [python()],
   cpp: () => [cpp()],
   java: () => [java()],
+  javascript: () => [javascript()],
 };
 
 interface Props {

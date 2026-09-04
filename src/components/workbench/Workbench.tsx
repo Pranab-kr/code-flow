@@ -21,6 +21,13 @@ import { describeStatus, type SaveState } from './status';
 import type { Language, ProgramIR } from '@/lib/ir/types';
 import './workbench.css';
 
+/** Display name for a language value. `JavaScript` keeps its capital S. */
+export function languageLabel(language: Language): string {
+  if (language === 'cpp') return 'C++';
+  if (language === 'javascript') return 'JavaScript';
+  return language[0].toUpperCase() + language.slice(1);
+}
+
 type Pane = 'code' | 'diagram' | 'ask';
 type CanvasView = 'diagram' | 'outline';
 
@@ -116,8 +123,7 @@ export function Workbench({
     if (!detected) return;
     pendingLanguage.current = detected;
     setSelectedLanguage(detected);
-    const label = detected === 'cpp' ? 'C++' : detected[0].toUpperCase() + detected.slice(1);
-    setDetection(`Detected ${label} — change it if that's wrong.`);
+    setDetection(`Detected ${languageLabel(detected)} — change it if that's wrong.`);
   }, []);
 
   const scheduleSave = useCallback(() => {
@@ -292,14 +298,14 @@ export function Workbench({
     [positions, layout, notes, onNodeMoved, onMoveAnnotation, failNote],
   );
   const errorCount = ir?.diagnostics.filter((d) => d.severity === 'error').length ?? 0;
-  const languageLabel = selectedLanguage === 'cpp' ? 'C++' : selectedLanguage === 'java' ? 'Java' : 'Python';
+  const selectedLanguageLabel = languageLabel(selectedLanguage);
 
   // Export is only meaningful over a real diagram — never over an empty canvas.
   const canExport = Boolean(fn && layout);
   const exportBlockReason =
     !fn || !layout
       ? errorCount > 0
-        ? `The code doesn't parse as ${languageLabel} — fix the errors to export.`
+        ? `The code doesn't parse as ${selectedLanguageLabel} — fix the errors to export.`
         : 'Nothing to export yet.'
       : null;
 
@@ -371,6 +377,7 @@ export function Workbench({
             <option value="python">Python</option>
             <option value="cpp">C++</option>
             <option value="java">Java</option>
+            <option value="javascript">JavaScript</option>
           </select>
         </label>
 
@@ -511,7 +518,7 @@ export function Workbench({
           {ir && ir.functions.length === 0 && status === 'ready' && (
             <p className="wb__notice">
               {errorCount > 0
-                ? `Couldn't parse this as ${languageLabel}. Fix the errors, or switch the language above — the diagram returns when it parses.`
+                ? `Couldn't parse this as ${selectedLanguageLabel}. Fix the errors, or switch the language above — the diagram returns when it parses.`
                 : 'No functions found yet. Paste a function and its diagram appears here.'}
             </p>
           )}

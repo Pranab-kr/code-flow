@@ -129,4 +129,23 @@ describe('javascript adapter — switch, jumps, try (spec §5)', () => {
     const ir = await js('function add(a: number, b: number): number {\n  return a + b;\n}\n');
     expect(ir.diagnostics.some((d) => d.severity === 'error')).toBe(true);
   });
+
+  it('arrow-form and declaration-form binary search are isomorphic (spec §8)', async () => {
+    const shapeOf = (g: {
+      nodes: { kind: string }[];
+      edges: { kind: string }[];
+      exitIds: unknown[];
+    }) => ({
+      nodes: g.nodes.map((n) => n.kind).sort(),
+      edges: g.edges.map((e) => e.kind).sort(),
+      exits: g.exitIds.length,
+    });
+    const decl = await js(
+      'function binarySearch(arr, target) {\n  let lo = 0;\n  let hi = arr.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (arr[mid] === target) return mid;\n    else if (arr[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}\n',
+    );
+    const arrow = await js(
+      'const binarySearch = (arr, target) => {\n  let lo = 0;\n  let hi = arr.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (arr[mid] === target) return mid;\n    else if (arr[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}\n',
+    );
+    expect(shapeOf(arrow.functions[0])).toEqual(shapeOf(decl.functions[0]));
+  });
 });

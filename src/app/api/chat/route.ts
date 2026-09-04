@@ -20,7 +20,7 @@ function jsonError(code: string, message: string, status: number): NextResponse 
 }
 
 function isLanguage(value: unknown): value is Language {
-  return value === 'python' || value === 'cpp' || value === 'java';
+  return value === 'python' || value === 'cpp' || value === 'java' || value === 'javascript';
 }
 
 /**

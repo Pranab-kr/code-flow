@@ -49,10 +49,22 @@ const STARTER: Record<Language, string> = {
     }
 }
 `,
+  javascript: `function binarySearch(arr, target) {
+  let lo = 0;
+  let hi = arr.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (arr[mid] === target) return mid;
+    else if (arr[mid] < target) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  return -1;
+}
+`,
 };
 
 function isLanguage(v: string): v is Language {
-  return v === 'python' || v === 'cpp' || v === 'java';
+  return v === 'python' || v === 'cpp' || v === 'java' || v === 'javascript';
 }
 
 /**
@@ -141,7 +153,7 @@ export async function saveSource(
   language: string,
   source: string,
 ): Promise<{ ok?: true; error?: string; snapshotId?: string }> {
-  if (!isLanguage(language)) return { error: 'Choose Python, C++, or Java.' };
+  if (!isLanguage(language)) return { error: 'Choose Python, C++, Java, or JavaScript.' };
   if (source.length > MAX_SOURCE_BYTES) {
     return { error: `That is over the ${MAX_SOURCE_BYTES / 1000}KB limit for one snapshot.` };
   }

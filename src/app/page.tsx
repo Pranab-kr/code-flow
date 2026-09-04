@@ -84,16 +84,17 @@ export default function Home() {
         <section className="msection" id="languages" aria-labelledby="lang-h">
           <p className="msection__kicker">Languages</p>
           <h2 className="msection__head" id="lang-h">
-            Python, C++, and Java
+            Python, C++, Java, and JavaScript
           </h2>
           <p className="msection__body">
             Paste and the picker detects the language; override it any time. The same
-            algorithm diagrams the same way in all three.
+            algorithm diagrams the same way in all four.
           </p>
           <ul className="mlangs" aria-label="Supported languages">
             <li>Python</li>
             <li>C++</li>
             <li>Java</li>
+            <li>JavaScript</li>
           </ul>
         </section>
 

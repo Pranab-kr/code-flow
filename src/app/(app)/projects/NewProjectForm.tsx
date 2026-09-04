@@ -33,6 +33,7 @@ export function NewProjectForm() {
           <option value="python">Python</option>
           <option value="cpp">C++</option>
           <option value="java">Java</option>
+          <option value="javascript">JavaScript</option>
         </select>
         <button className="pj__create" type="submit" disabled={pending}>
           {pending ? 'Creating…' : 'Create'}

@@ -19,4 +19,25 @@ describe('detectLanguage', () => {
     expect(detectLanguage('x = 1')).toBeNull();
     expect(detectLanguage('int f() { return 0; }')).toBeNull();
   });
+
+  it('detects JavaScript from arrows, strict equality, and console', () => {
+    expect(
+      detectLanguage(
+        'const binarySearch = (arr, target) => {\n  if (arr[0] === target) return 0;\n  return -1;\n}\n',
+      ),
+    ).toBe('javascript');
+  });
+
+  it('detects JavaScript from import-from and export', () => {
+    expect(
+      detectLanguage("import { parse } from './parse';\nexport function f() { return 1; }\n"),
+    ).toBe('javascript');
+  });
+
+  it('leaves TypeScript-annotated code unselected (spec §7)', () => {
+    expect(
+      detectLanguage('function add(a: number, b: number): number {\n  return a + b;\n}\n'),
+    ).toBeNull();
+    expect(detectLanguage('interface User {\n  name: string;\n}\n')).toBeNull();
+  });
 });

@@ -25,11 +25,12 @@ const LANGUAGES: [Language, string][] = [
   ['python', 'py'],
   ['cpp', 'cpp'],
   ['java', 'java'],
+  ['javascript', 'js'],
 ];
 
 describe('cross-language isomorphism', () => {
   for (const name of CASES) {
-    it(`${name} produces the same graph shape in all three languages`, async () => {
+    it(`${name} produces the same graph shape in all four languages`, async () => {
       const shapes = await Promise.all(
         LANGUAGES.map(async ([language, extension]) => {
           const source = readFileSync(path.join(DIR, `${name}.${extension}`), 'utf8');
