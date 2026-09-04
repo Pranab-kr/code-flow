@@ -92,3 +92,13 @@ test('paste TypeScript annotations: never claimed as JavaScript (spec §7)', asy
   await expect(page.locator('.wb__detected')).toHaveCount(0);
   await expect(page.locator('.wb__notice')).toHaveText(/Couldn't parse this as Python/);
 });
+
+test('an undetected paste clears a previous detection banner', async ({ page }) => {
+  await paste(page, JS_ARROW);
+  await expect(page.locator('.wb__detected')).toHaveText(/Detected JavaScript/);
+  // Ambiguous text detects as nothing: the banner must go, not linger over
+  // content it never described. The selected language stays put.
+  await paste(page, 'x = 1\n');
+  await expect(page.locator('.wb__detected')).toHaveCount(0);
+  await expect(page.locator('.wb__language')).toHaveValue('javascript');
+});

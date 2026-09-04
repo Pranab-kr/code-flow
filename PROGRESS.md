@@ -189,6 +189,18 @@ Plan: `docs/superpowers/plans/2026-09-04-p2-javascript.md`. All on branch `p2-ja
 
 Still owed: merge to `main`, then the spec §12 prod check (paste JS + TS on live `/demo`).
 
+**Prod check 2026-09-04 (post-merge, `e077114` live): PASS with one wrinkle.**
+Pasted the arrow binary search on live `/demo`: picker lists JavaScript,
+"Detected JavaScript" banner, `binarySearch(arr,target)` entry (arrow ≡
+declaration identity on screen), `WHILE ↻` header, true-rhombi `IF` diamonds,
+filled-cap returns, true/false labels, dashed back edges — eye-verified from
+`/tmp/prod-js-diagram.png`, zero console errors. TS-annotated paste was never
+*mislabelled*, but the old "Detected JavaScript" banner lingered over the new
+content (a paste that detects nothing left the previous verdict up). Fixed on
+`main`: an undetected paste now clears the banner (`handlePaste` early-returns
+`setDetection(null)`), pinned by a fourth `javascript.spec.ts` test. E2E is
+17/17 local. The banner fix itself reaches prod with the next deploy.
+
 ## Bugs found by reviewing output rather than trusting green tests
 
 Worth recording, because each would have shipped as a silent wrong answer:

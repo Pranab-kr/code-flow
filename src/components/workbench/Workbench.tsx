@@ -120,7 +120,13 @@ export function Workbench({
 
   const handlePaste = useCallback((text: string) => {
     const detected = detectLanguage(text);
-    if (!detected) return;
+    // A paste that detects nothing clears the banner: it describes the last
+    // paste's auto-switch, and showing the previous paste's verdict over new
+    // content would claim an identification that never happened.
+    if (!detected) {
+      setDetection(null);
+      return;
+    }
     pendingLanguage.current = detected;
     setSelectedLanguage(detected);
     setDetection(`Detected ${languageLabel(detected)} — change it if that's wrong.`);
