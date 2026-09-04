@@ -3,6 +3,7 @@ import type { SynFunction } from '../builder';
 import { toSyn as pythonToSyn } from './python';
 import { toSyn as cppToSyn } from './cpp';
 import { toSyn as javaToSyn } from './java';
+import { toSyn as javascriptToSyn } from './javascript';
 import type { TSNode } from './tsnode';
 
 export type Adapter = (root: TSNode) => { funcs: SynFunction[]; diagnostics: Diagnostic[] };
@@ -31,5 +32,10 @@ export const LANGUAGES: Record<
     grammarUrl: '/grammars/tree-sitter-java.wasm',
     nodePackage: 'tree-sitter-java',
     adapter: javaToSyn,
+  },
+  javascript: {
+    grammarUrl: '/grammars/tree-sitter-javascript.wasm',
+    nodePackage: 'tree-sitter-javascript',
+    adapter: javascriptToSyn,
   },
 };

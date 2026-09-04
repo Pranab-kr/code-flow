@@ -9,7 +9,7 @@
 /** Bump to invalidate every persisted graph. */
 export const IR_VERSION = 1;
 
-export type Language = 'cpp' | 'java' | 'python';
+export type Language = 'cpp' | 'java' | 'python' | 'javascript';
 
 export type NodeKind =
   | 'entry'
