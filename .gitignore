@@ -33,3 +33,6 @@ public/grammars/
 # MCP server config — per-machine, and its 21st.dev key comes from a local env var.
 .mcp.json
 opencode.json
+
+# Git worktrees — local checkouts, never committed.
+.worktrees/
