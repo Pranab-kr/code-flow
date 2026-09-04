@@ -409,7 +409,10 @@ describe('javascript adapter — branches and loops (spec §5)', () => {
   it('an async function renders as plain blocks (no execution semantics)', async () => {
     const ir = await js('async function f(url) {\n  const r = await fetch(url);\n  return r;\n}\n');
     expect(ir.diagnostics.filter((d) => d.severity === 'error')).toEqual([]);
-    expect(ir.functions[0].edges.some((e) => e.kind === 'call')).toBe(false);
+    expect(ir.functions).toHaveLength(1);
+    // The await folds into its block's statements — present, not dropped, no edge.
+    const text = ir.functions[0].nodes.flatMap((n) => n.statements).join('\n');
+    expect(text).toContain('fetch(url)');
   });
 });
 ```
