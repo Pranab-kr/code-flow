@@ -39,6 +39,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local worktree checkouts (gitignored). Without this, a lint run from
+    // the repo root descends into every worktree — including their .next/
+    // build output — and reports tens of thousands of foreign problems.
+    ".worktrees/**",
     // Golden/isomorphism fixtures are test DATA parsed by tree-sitter, never
     // bundled or typechecked. (.py/.cpp/.java fixtures were never lintable;
     // .js fixtures would warn unused-vars on every top-level function.)
