@@ -480,22 +480,22 @@ git commit -m "feat: JavaScript CFG adapter, declarations through try/finally (P
 
 ---
 
-### Task 4: Golden fixtures — 13 JS files under the existing harness
+### Task 4: Golden fixtures — 14 JS files under the existing harness
 
 **Files:**
-- Create: `src/lib/ir/__fixtures__/js/01-straight-line.js` … `13-arrow-forms.js` (13 files, listed below)
+- Create: `src/lib/ir/__fixtures__/js/01-straight-line.js` … `14-switch-fallthrough.js` (14 files, listed below)
 - Modify: `src/lib/ir/golden.test.ts:48-52` (SUITES row)
 
 **Interfaces:**
 - Consumes: `parseToIR` + `normalize()` in `golden.test.ts` (unchanged).
 - Produces: 13 committed fixtures + snapshots; every fixture parses with zero error diagnostics.
 
-Fixture list (each small, valid JS, one idea per file — ports of the java set plus JS forms):
-01 straight-line (`function add`), 02 if-else, 03 else-if chain, 04 while loop, 05 for-of over an array, 06 nested loops, 07 break/continue, 08 labeled break/continue, 09 multi-return, 10 try-catch-finally, 11 recursion (self `call` edge — the hero feature must show in JS too), 12 binary-search (declaration form, `function binarySearch(arr, target)`), 13 arrow-forms (`const binarySearch = async (arr, target) => {...}` over the same algorithm + a `class Search` method variant — spec §8 requires arrow ≡ declaration isomorphism; the golden pins the arrow rendering).
+Fixture list (each small, valid JS, one idea per file — ports of the java set plus JS forms; `04` holds both while forms since `do...while` shares the loop construct):
+01 straight-line (`function add`), 02 if-else, 03 else-if chain, 04 while loop + do...while, 05 for-of over an array, 06 nested loops, 07 break/continue, 08 labeled break/continue, 09 multi-return, 10 try-catch-finally, 11 recursion (self `call` edge — the hero feature must show in JS too), 12 binary-search (declaration form, `function binarySearch(arr, target)`), 13 arrow-forms (`const binarySearch = async (arr, target) => {...}` over the same algorithm + a `class Search` method variant — spec §8 requires arrow ≡ declaration isomorphism; the golden pins the arrow rendering), 14 classic fallthrough switch (consecutive `case 0:`/`case 1:` sharing one arm, like the java switch fixture).
 
 - [ ] **Step 1: Write the 13 fixtures**
 
-Example shape (all 13 follow this scale — a few lines each):
+Example shape (all 14 follow this scale — a few lines each):
 
 `12-binary-search.js`:
 
@@ -537,13 +537,13 @@ class Search {
 - [ ] **Step 2: Register the suite**
 
 ```ts
-{ language: 'javascript', dir: 'js', ext: '.js', count: 13 },
+{ language: 'javascript', dir: 'js', ext: '.js', count: 14 },
 ```
 
 - [ ] **Step 3: Run goldens, watch the new suite fail on missing snapshots**
 
 Run: `pnpm vitest run --project unit src/lib/ir/golden.test.ts`
-Expected: FAIL only on the 13 `javascript` snapshot mismatches (new keys); python/cpp/java suites stay green. Any failure in the older suites means the adapter leaked into shared code — stop and investigate.
+Expected: FAIL only on the 14 `javascript` snapshot mismatches (new keys); python/cpp/java suites stay green. Any failure in the older suites means the adapter leaked into shared code — stop and investigate.
 
 - [ ] **Step 4: READ the new snapshots before accepting (the P1 bugs lesson)**
 
@@ -556,12 +556,12 @@ pnpm vitest run --project unit src/lib/ir/golden.test.ts -u
 pnpm vitest run --project unit src/lib/ir/golden.test.ts
 ```
 
-Expected: 13/13 snapshots pass, structural-invariant suites pass for `js`.
+Expected: 14/14 snapshots pass, structural-invariant suites pass for `js`.
 Commit:
 
 ```bash
 git add src/lib/ir/__fixtures__/js/ src/lib/ir/golden.test.ts src/lib/ir/__snapshots__/
-git commit -m "test: 13 JavaScript golden fixtures under the existing harness (P2 Task 4)"
+git commit -m "test: 14 JavaScript golden fixtures under the existing harness (P2 Task 4)"
 ```
 
 ---
