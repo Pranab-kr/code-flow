@@ -3017,6 +3017,1604 @@ exports[`java golden fixtures > matches the golden IR for 13-switch-forms.java 1
 }
 `;
 
+exports[`javascript golden fixtures > matches the golden IR for 01-straight-line.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "add(a,b)#b0",
+          "target": "add(a,b)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "add(a,b)#entry",
+          "target": "add(a,b)#b0",
+        },
+      ],
+      "entryId": "add(a,b)#entry",
+      "exitCount": 1,
+      "id": "add(a,b)",
+      "nodes": [
+        {
+          "id": "add(a,b)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "add(a,b)#b0",
+          "kind": "basic",
+          "statements": [
+            "const sum = a + b;",
+          ],
+        },
+        {
+          "id": "add(a,b)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return sum;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 02-if-else.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "sign(x)/if@0#cond-b0",
+          "target": "sign(x)/if@0/else#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "sign(x)/if@0#cond-b0",
+          "target": "sign(x)/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "sign(x)#entry",
+          "target": "sign(x)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "sign(x)#entry",
+      "exitCount": 2,
+      "id": "sign(x)",
+      "nodes": [
+        {
+          "id": "sign(x)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "sign(x)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x > 0",
+          ],
+        },
+        {
+          "id": "sign(x)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 1;",
+          ],
+        },
+        {
+          "id": "sign(x)/if@0/else#return-b0",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 03-elif-chain.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "grade(score)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "grade(score)/if@0/else/if@0/else/if@0/else#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "grade(score)/if@0/else/if@0/else/if@0#cond-b0",
+          "target": "grade(score)/if@0/else/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "grade(score)/if@0/else/if@0#cond-b0",
+          "target": "grade(score)/if@0/else/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "grade(score)/if@0/else/if@0#cond-b0",
+          "target": "grade(score)/if@0/else/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "grade(score)/if@0#cond-b0",
+          "target": "grade(score)/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "grade(score)/if@0#cond-b0",
+          "target": "grade(score)/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "grade(score)#entry",
+          "target": "grade(score)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "grade(score)#entry",
+      "exitCount": 4,
+      "id": "grade(score)",
+      "nodes": [
+        {
+          "id": "grade(score)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "grade(score)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "score >= 90",
+          ],
+        },
+        {
+          "id": "grade(score)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 'A';",
+          ],
+        },
+        {
+          "id": "grade(score)/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "score >= 80",
+          ],
+        },
+        {
+          "id": "grade(score)/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 'B';",
+          ],
+        },
+        {
+          "id": "grade(score)/if@0/else/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "score >= 70",
+          ],
+        },
+        {
+          "id": "grade(score)/if@0/else/if@0/else/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 'C';",
+          ],
+        },
+        {
+          "id": "grade(score)/if@0/else/if@0/else/if@0/else#return-b0",
+          "kind": "return",
+          "statements": [
+            "return 'F';",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 04-while-loop.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "countdown(n)/while@0#b1",
+          "target": "countdown(n)/while@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "countdown(n)/while@0#cond-b0",
+          "target": "countdown(n)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "countdown(n)/while@0#cond-b0",
+          "target": "countdown(n)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "countdown(n)#entry",
+          "target": "countdown(n)/while@0#cond-b0",
+        },
+      ],
+      "entryId": "countdown(n)#entry",
+      "exitCount": 1,
+      "id": "countdown(n)",
+      "nodes": [
+        {
+          "id": "countdown(n)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "countdown(n)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "n > 0",
+          ],
+        },
+        {
+          "id": "countdown(n)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "n--;",
+          ],
+        },
+        {
+          "id": "countdown(n)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return n;",
+          ],
+        },
+      ],
+    },
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "repeatUntil(done)/do@0#b1",
+          "target": "repeatUntil(done)/do@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "do-while",
+          "source": "repeatUntil(done)/do@0#cond-b0",
+          "target": "repeatUntil(done)/do@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "repeatUntil(done)/do@0#cond-b0",
+          "target": "repeatUntil(done)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "repeatUntil(done)#entry",
+          "target": "repeatUntil(done)/do@0#b1",
+        },
+      ],
+      "entryId": "repeatUntil(done)#entry",
+      "exitCount": 1,
+      "id": "repeatUntil(done)",
+      "nodes": [
+        {
+          "id": "repeatUntil(done)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "repeatUntil(done)/do@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "do-while",
+          "statements": [
+            "!done",
+          ],
+        },
+        {
+          "id": "repeatUntil(done)/do@0#b1",
+          "kind": "basic",
+          "statements": [
+            "done = poll();",
+          ],
+        },
+        {
+          "id": "repeatUntil(done)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return done;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 05-for-range.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "foreach",
+          "source": "total(items)/foreach@0#b1",
+          "target": "total(items)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "total(items)/foreach@0#cond-b0",
+          "target": "total(items)/foreach@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "total(items)/foreach@0#cond-b0",
+          "target": "total(items)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "total(items)#b0",
+          "target": "total(items)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "total(items)#entry",
+          "target": "total(items)#b0",
+        },
+      ],
+      "entryId": "total(items)#entry",
+      "exitCount": 1,
+      "id": "total(items)",
+      "nodes": [
+        {
+          "id": "total(items)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "total(items)#b0",
+          "kind": "basic",
+          "statements": [
+            "let sum = 0;",
+          ],
+        },
+        {
+          "id": "total(items)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "x in items",
+          ],
+        },
+        {
+          "id": "total(items)/foreach@0#b1",
+          "kind": "basic",
+          "statements": [
+            "sum += x;",
+          ],
+        },
+        {
+          "id": "total(items)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return sum;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 06-nested-loops.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "for",
+          "source": "pairs(n)/for@0/for@0#b1",
+          "target": "pairs(n)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "pairs(n)/for@0/for@0#cond-b0",
+          "target": "pairs(n)/for@0/for@0#b1",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "pairs(n)/for@0/for@0#cond-b0",
+          "target": "pairs(n)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "pairs(n)/for@0#b1",
+          "target": "pairs(n)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "pairs(n)/for@0#cond-b0",
+          "target": "pairs(n)/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "pairs(n)/for@0#cond-b0",
+          "target": "pairs(n)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "pairs(n)#b0",
+          "target": "pairs(n)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "pairs(n)#entry",
+          "target": "pairs(n)#b0",
+        },
+      ],
+      "entryId": "pairs(n)#entry",
+      "exitCount": 1,
+      "id": "pairs(n)",
+      "nodes": [
+        {
+          "id": "pairs(n)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "pairs(n)#b0",
+          "kind": "basic",
+          "statements": [
+            "const out = [];",
+            "let i = 0;",
+          ],
+        },
+        {
+          "id": "pairs(n)/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < n; i++",
+          ],
+        },
+        {
+          "id": "pairs(n)/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "let j = 0;",
+          ],
+        },
+        {
+          "id": "pairs(n)/for@0/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "j < n; j++",
+          ],
+        },
+        {
+          "id": "pairs(n)/for@0/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "out.push([i, j]);",
+          ],
+        },
+        {
+          "id": "pairs(n)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return out;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 07-break-continue.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "continue",
+          "label": "continue",
+          "source": "firstEven(items)/foreach@0/if@0/then#continue-b0",
+          "target": "firstEven(items)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "firstEven(items)/foreach@0/if@0#cond-b0",
+          "target": "firstEven(items)/foreach@0/if@0/then#continue-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "firstEven(items)/foreach@0/if@0#cond-b0",
+          "target": "firstEven(items)/foreach@0/if@1#cond-b0",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "firstEven(items)/foreach@0/if@1/then#break-b0",
+          "target": "firstEven(items)#return-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "firstEven(items)/foreach@0/if@1#cond-b0",
+          "target": "firstEven(items)/foreach@0/if@1/then#break-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → foreach",
+          "source": "firstEven(items)/foreach@0/if@1#cond-b0",
+          "target": "firstEven(items)/foreach@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "firstEven(items)/foreach@0#cond-b0",
+          "target": "firstEven(items)/foreach@0/if@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "firstEven(items)/foreach@0#cond-b0",
+          "target": "firstEven(items)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "firstEven(items)#entry",
+          "target": "firstEven(items)/foreach@0#cond-b0",
+        },
+      ],
+      "entryId": "firstEven(items)#entry",
+      "exitCount": 1,
+      "id": "firstEven(items)",
+      "nodes": [
+        {
+          "id": "firstEven(items)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "firstEven(items)/foreach@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "foreach",
+          "statements": [
+            "x in items",
+          ],
+        },
+        {
+          "id": "firstEven(items)/foreach@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x === 0",
+          ],
+        },
+        {
+          "id": "firstEven(items)/foreach@0/if@0/then#continue-b0",
+          "kind": "basic",
+          "statements": [
+            "continue",
+          ],
+        },
+        {
+          "id": "firstEven(items)/foreach@0/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "x % 2 === 0",
+          ],
+        },
+        {
+          "id": "firstEven(items)/foreach@0/if@1/then#break-b0",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "firstEven(items)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return x;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 08-labeled-break.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "findZero(grid)/for@0/for@0/if@0/then#b0",
+          "target": "findZero(grid)/for@0/for@0/if@0/then#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break outer",
+          "source": "findZero(grid)/for@0/for@0/if@0/then#break-b1",
+          "target": "findZero(grid)#return-b1",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "findZero(grid)/for@0/for@0/if@0#cond-b0",
+          "target": "findZero(grid)/for@0/for@0/if@0/then#b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "findZero(grid)/for@0/for@0/if@0#cond-b0",
+          "target": "findZero(grid)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "findZero(grid)/for@0/for@0#cond-b0",
+          "target": "findZero(grid)/for@0/for@0/if@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "false → for",
+          "source": "findZero(grid)/for@0/for@0#cond-b0",
+          "target": "findZero(grid)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "findZero(grid)/for@0#b1",
+          "target": "findZero(grid)/for@0/for@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "findZero(grid)/for@0#cond-b0",
+          "target": "findZero(grid)/for@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "findZero(grid)/for@0#cond-b0",
+          "target": "findZero(grid)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "findZero(grid)#b0",
+          "target": "findZero(grid)/for@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "findZero(grid)#entry",
+          "target": "findZero(grid)#b0",
+        },
+      ],
+      "entryId": "findZero(grid)#entry",
+      "exitCount": 1,
+      "id": "findZero(grid)",
+      "nodes": [
+        {
+          "id": "findZero(grid)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "findZero(grid)#b0",
+          "kind": "basic",
+          "statements": [
+            "let found = -1;",
+            "let i = 0;",
+          ],
+        },
+        {
+          "id": "findZero(grid)/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "i < grid.length; i++",
+          ],
+        },
+        {
+          "id": "findZero(grid)/for@0#b1",
+          "kind": "basic",
+          "statements": [
+            "let j = 0;",
+          ],
+        },
+        {
+          "id": "findZero(grid)/for@0/for@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "for",
+          "statements": [
+            "j < grid[i].length; j++",
+          ],
+        },
+        {
+          "id": "findZero(grid)/for@0/for@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "grid[i][j] === 0",
+          ],
+        },
+        {
+          "id": "findZero(grid)/for@0/for@0/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "found = i;",
+          ],
+        },
+        {
+          "id": "findZero(grid)/for@0/for@0/if@0/then#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break outer",
+          ],
+        },
+        {
+          "id": "findZero(grid)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return found;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 09-multi-return.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "pick(items,target)/if@0#cond-b0",
+          "target": "pick(items,target)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "pick(items,target)/if@0#cond-b0",
+          "target": "pick(items,target)/if@1#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "pick(items,target)/if@1#cond-b0",
+          "target": "pick(items,target)/if@1/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "pick(items,target)/if@1#cond-b0",
+          "target": "pick(items,target)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "pick(items,target)#entry",
+          "target": "pick(items,target)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "pick(items,target)#entry",
+      "exitCount": 3,
+      "id": "pick(items,target)",
+      "nodes": [
+        {
+          "id": "pick(items,target)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "pick(items,target)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "items.length === 0",
+          ],
+        },
+        {
+          "id": "pick(items,target)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return null;",
+          ],
+        },
+        {
+          "id": "pick(items,target)/if@1#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "items[0] === target",
+          ],
+        },
+        {
+          "id": "pick(items,target)/if@1/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return items[0];",
+          ],
+        },
+        {
+          "id": "pick(items,target)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return undefined;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 10-try-finally.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": "finally",
+          "source": "load(handle)/try@0/catch-0#return-b0",
+          "target": "load(handle)/try@0#finally",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "load(handle)/try@0/finally/if@0/then#b0",
+          "target": "load(handle)#exit",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "load(handle)/try@0/finally/if@0#cond-b0",
+          "target": "load(handle)/try@0/finally/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "load(handle)/try@0/finally/if@0#cond-b0",
+          "target": "load(handle)#exit",
+        },
+        {
+          "kind": "exception",
+          "label": "exception",
+          "source": "load(handle)/try@0#b0",
+          "target": "load(handle)/try@0/catch-0#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "load(handle)/try@0#b0",
+          "target": "load(handle)/try@0#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "load(handle)/try@0#finally",
+          "target": "load(handle)/try@0/finally/if@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": "finally",
+          "source": "load(handle)/try@0#return-b1",
+          "target": "load(handle)/try@0#finally",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "load(handle)#entry",
+          "target": "load(handle)/try@0#b0",
+        },
+      ],
+      "entryId": "load(handle)#entry",
+      "exitCount": 1,
+      "id": "load(handle)",
+      "nodes": [
+        {
+          "id": "load(handle)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "load(handle)/try@0#b0",
+          "kind": "basic",
+          "statements": [
+            "const data = handle.read();",
+          ],
+        },
+        {
+          "id": "load(handle)/try@0#return-b1",
+          "kind": "return",
+          "statements": [
+            "return data;",
+          ],
+        },
+        {
+          "id": "load(handle)/try@0/catch-0#return-b0",
+          "kind": "return",
+          "statements": [
+            "return null;",
+          ],
+        },
+        {
+          "id": "load(handle)/try@0#finally",
+          "kind": "basic",
+          "statements": [
+            "finally:",
+          ],
+        },
+        {
+          "id": "load(handle)/try@0/finally/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "handle",
+          ],
+        },
+        {
+          "id": "load(handle)/try@0/finally/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "handle.close();",
+          ],
+        },
+        {
+          "id": "load(handle)#exit",
+          "kind": "exit",
+          "statements": [],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 11-recursion.js 1`] = `
+{
+  "callEdges": [
+    {
+      "from": "fib(n)",
+      "to": "fib(n)",
+    },
+  ],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "fib(n)/if@0#cond-b0",
+          "target": "fib(n)/if@0/then#return-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "fib(n)/if@0#cond-b0",
+          "target": "fib(n)#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "fib(n)#entry",
+          "target": "fib(n)/if@0#cond-b0",
+        },
+      ],
+      "entryId": "fib(n)#entry",
+      "exitCount": 2,
+      "id": "fib(n)",
+      "nodes": [
+        {
+          "id": "fib(n)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "fib(n)/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "n <= 1",
+          ],
+        },
+        {
+          "id": "fib(n)/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return n;",
+          ],
+        },
+        {
+          "id": "fib(n)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return fib(n - 1) + fib(n - 2);",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 12-binary-search.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0/else#b0",
+          "target": "binarySearch(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0/then#b0",
+          "target": "binarySearch(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/else/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/else/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(arr,target)/while@0#b1",
+          "target": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(arr,target)/while@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(arr,target)/while@0#cond-b0",
+          "target": "binarySearch(arr,target)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(arr,target)#b0",
+          "target": "binarySearch(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(arr,target)#entry",
+          "target": "binarySearch(arr,target)#b0",
+        },
+      ],
+      "entryId": "binarySearch(arr,target)#entry",
+      "exitCount": 2,
+      "id": "binarySearch(arr,target)",
+      "nodes": [
+        {
+          "id": "binarySearch(arr,target)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "binarySearch(arr,target)#b0",
+          "kind": "basic",
+          "statements": [
+            "let lo = 0;",
+            "let hi = arr.length - 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "lo <= hi",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "const mid = (lo + hi) >> 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] === target",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return mid;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] < target",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/else/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "lo = mid + 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/else/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "hi = mid - 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 13-arrow-forms.js 1`] = `
+{
+  "callEdges": [
+    {
+      "from": "Search.find(arr,target)",
+      "to": "binarySearch(arr,target)",
+    },
+  ],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0/else#b0",
+          "target": "binarySearch(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "back",
+          "label": "while",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0/then#b0",
+          "target": "binarySearch(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/else/if@0/else#b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/else/if@0/then#b0",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0/if@0/then#return-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(arr,target)/while@0#b1",
+          "target": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+        },
+        {
+          "kind": "true",
+          "label": "true",
+          "source": "binarySearch(arr,target)/while@0#cond-b0",
+          "target": "binarySearch(arr,target)/while@0#b1",
+        },
+        {
+          "kind": "false",
+          "label": "false",
+          "source": "binarySearch(arr,target)/while@0#cond-b0",
+          "target": "binarySearch(arr,target)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(arr,target)#b0",
+          "target": "binarySearch(arr,target)/while@0#cond-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "binarySearch(arr,target)#entry",
+          "target": "binarySearch(arr,target)#b0",
+        },
+      ],
+      "entryId": "binarySearch(arr,target)#entry",
+      "exitCount": 2,
+      "id": "binarySearch(arr,target)",
+      "nodes": [
+        {
+          "id": "binarySearch(arr,target)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "binarySearch(arr,target)#b0",
+          "kind": "basic",
+          "statements": [
+            "let lo = 0;",
+            "let hi = arr.length - 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0#cond-b0",
+          "kind": "loop-header",
+          "loopKind": "while",
+          "statements": [
+            "lo <= hi",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0#b1",
+          "kind": "basic",
+          "statements": [
+            "const mid = (lo + hi) >> 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] === target",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/then#return-b0",
+          "kind": "return",
+          "statements": [
+            "return mid;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/else/if@0#cond-b0",
+          "kind": "branch",
+          "statements": [
+            "arr[mid] < target",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/else/if@0/then#b0",
+          "kind": "basic",
+          "statements": [
+            "lo = mid + 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)/while@0/if@0/else/if@0/else#b0",
+          "kind": "basic",
+          "statements": [
+            "hi = mid - 1;",
+          ],
+        },
+        {
+          "id": "binarySearch(arr,target)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return -1;",
+          ],
+        },
+      ],
+    },
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "Search.find(arr,target)#entry",
+          "target": "Search.find(arr,target)#return-b0",
+        },
+      ],
+      "entryId": "Search.find(arr,target)#entry",
+      "exitCount": 1,
+      "id": "Search.find(arr,target)",
+      "nodes": [
+        {
+          "id": "Search.find(arr,target)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "Search.find(arr,target)#return-b0",
+          "kind": "return",
+          "statements": [
+            "return binarySearch(arr, target);",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
+exports[`javascript golden fixtures > matches the golden IR for 14-switch-fallthrough.js 1`] = `
+{
+  "callEdges": [],
+  "diagnostics": [],
+  "functions": [
+    {
+      "edges": [
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(x)/switch@0/case-1#b0",
+          "target": "describe(x)/switch@0/case-1#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "describe(x)/switch@0/case-1#break-b1",
+          "target": "describe(x)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(x)/switch@0/case-2#b0",
+          "target": "describe(x)/switch@0/case-2#break-b1",
+        },
+        {
+          "kind": "break",
+          "label": "break",
+          "source": "describe(x)/switch@0/case-2#break-b1",
+          "target": "describe(x)#return-b1",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(x)/switch@0/case-default#b0",
+          "target": "describe(x)#return-b1",
+        },
+        {
+          "kind": "case",
+          "label": "case 1",
+          "source": "describe(x)/switch@0#disc-b0",
+          "target": "describe(x)/switch@0/case-1#b0",
+        },
+        {
+          "kind": "case",
+          "label": "case 0",
+          "source": "describe(x)/switch@0#disc-b0",
+          "target": "describe(x)/switch@0/case-1#b0",
+        },
+        {
+          "kind": "case",
+          "label": "case 2",
+          "source": "describe(x)/switch@0#disc-b0",
+          "target": "describe(x)/switch@0/case-2#b0",
+        },
+        {
+          "kind": "default",
+          "label": "default",
+          "source": "describe(x)/switch@0#disc-b0",
+          "target": "describe(x)/switch@0/case-default#b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(x)#b0",
+          "target": "describe(x)/switch@0#disc-b0",
+        },
+        {
+          "kind": "seq",
+          "label": undefined,
+          "source": "describe(x)#entry",
+          "target": "describe(x)#b0",
+        },
+      ],
+      "entryId": "describe(x)#entry",
+      "exitCount": 1,
+      "id": "describe(x)",
+      "nodes": [
+        {
+          "id": "describe(x)#entry",
+          "kind": "entry",
+          "statements": [],
+        },
+        {
+          "id": "describe(x)#b0",
+          "kind": "basic",
+          "statements": [
+            "let out = '';",
+          ],
+        },
+        {
+          "id": "describe(x)/switch@0#disc-b0",
+          "kind": "switch",
+          "statements": [
+            "x",
+          ],
+        },
+        {
+          "id": "describe(x)/switch@0/case-1#b0",
+          "kind": "basic",
+          "statements": [
+            "out = 'low';",
+          ],
+        },
+        {
+          "id": "describe(x)/switch@0/case-1#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "describe(x)/switch@0/case-2#b0",
+          "kind": "basic",
+          "statements": [
+            "out = 'two';",
+          ],
+        },
+        {
+          "id": "describe(x)/switch@0/case-2#break-b1",
+          "kind": "basic",
+          "statements": [
+            "break",
+          ],
+        },
+        {
+          "id": "describe(x)/switch@0/case-default#b0",
+          "kind": "basic",
+          "statements": [
+            "out = 'high';",
+          ],
+        },
+        {
+          "id": "describe(x)#return-b1",
+          "kind": "return",
+          "statements": [
+            "return out;",
+          ],
+        },
+      ],
+    },
+  ],
+  "language": "javascript",
+}
+`;
+
 exports[`python golden fixtures > matches the golden IR for 01-straight-line.py 1`] = `
 {
   "callEdges": [],
