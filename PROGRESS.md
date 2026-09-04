@@ -10,8 +10,8 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 
 | | |
 |---|---|
-| **Last updated** | 2026-09-03 |
-| **Phase** | P1 (of 4) — foundation — **COMPLETE** |
+| **Last updated** | 2026-09-04 |
+| **Phase** | P1 (of 4) — foundation — **COMPLETE** · P2 JavaScript — **implemented on `p2-javascript`, unmerged** |
 | **Deployed** | **LIVE** at https://code-flow-beta.vercel.app |
 | **Plan 1** | Tasks 1, 3–7 done. Task 2 (schema/RLS) absorbed into Plan 2. |
 | **Plan 2** | **All 5 tasks done. Plan 2 is complete.** |
@@ -20,8 +20,9 @@ Any agent picking up this repo: read this file first, then `CLAUDE.md`, then the
 | **Plan 5** | **All 4 tasks COMMITTED 2026-09-03** (vault `117bb04`, chat backend `2cf673f`, trap-12 `c5b0da8`, chat UI `aed893b`). **Migrations 0005/0006 applied 2026-09-03 via Supabase MCP; RLS 21/21; live vault round-trip proven.** Task 4 Step 5 hand verification with a real provider key still owed (devtools body check, selected-node grounding, wrong-key wording, log grep). |
 | **Plan 6** | **All 5 tasks done, committed 2026-09-03** (landing `c287e9b`, auth `b868232`, outline+a11y `16469b1`, E2E+slop `bbe46d2`). Map/Diagram + N13 (working palette) + Ft5, Aurora; axe 10/10 both themes; full slice E2E green incl. drag-survives-reload + PNG download; Lighthouse a11y 100/100/100 (`/`, `/login`, `/demo`, dev-mode). `.hallmark/log.json` deliberately one entry (Task 4 shipped no page structure — see decision log). |
 | **Tests** | 339 unit passing (+9 outline) · RLS 30/30 · E2E 13/13 (axe 10 + slice 3) · lint clean · `tsc --noEmit` clean · build succeeds · contrast 27/27 both themes |
-| **Blocked on** | Nothing. P1 is done. |
-| **Next action** | P2 is spec'd (`2026-09-03-code-flow-p2-javascript-design.md`, approved — JS-only, TS deferred, Go named next). Next: invoke writing-plans for the P2 implementation plan, then implement. Pushed through `185cf45`; prod `/demo` verified with Outline toggle (9 steps, 0 console errors). |
+| **P2 (branch)** | 375 unit passing (+36: 16 adapter/probe + 3 detect + 1 arrow-iso + 14 goldens + structural) · RLS 30/30 · E2E 16/16 (axe 10 + slice 3 + **js-smoke 3**) · lint clean · `tsc` clean · build succeeds (all 4 wasms in Inngest trace) · Lighthouse a11y 100/100/100 (`/`, `/login`, `/demo`) · contrast 27/27 stands (no token touched) |
+| **Blocked on** | Nothing technical. P2 needs review + merge to `main`, then the live `/demo` JS-paste prod check (spec §12 last line). |
+| **Next action** | Review the `p2-javascript` branch (6 commits: probe, boundary review, adapter, goldens, wiring+migration 0007, browser smoke). Then merge and verify on prod `/demo`: paste JS arrow → "Detected JavaScript", 10 nodes; paste TS annotations → not claimed. Migration `0007_javascript_language.sql` is already applied to hosted `gsfosuvhysdesstetwjh` (21→30 RLS green after). |
 
 ---
 
@@ -172,6 +173,21 @@ back edges dashed and pointing the right way.
 | 3 | Canvas accessibility (outline, keyboard, axe) | ✅ `16469b1` (`outline.ts` 4 tests + `GraphOutline` 5 tests; Diagram/Outline toggle in Workbench; canvas aria-label names function + node count; `:focus-visible` ring on the focus token; axe 10/10 both themes after 3 fixes — see decision log) |
 | 4 | E2E + 58-gate slop + Lighthouse | ✅ `bbe46d2` (`slice.spec.ts` 3 tests incl. the full signup→export slice; slop sweep pass with 2 fixes; Lighthouse a11y 100/100/100 on `/`, `/login`, `/demo`; `.hallmark/log.json` left at one entry deliberately) |
 | 5 | Close out P1 | ✅ this session (339 unit · RLS 30/30 · E2E 13/13 · lint · tsc · build · contrast 27/27; retrospective below; P2 stub at `docs/superpowers/specs/2026-09-03-code-flow-p2-stub.md`) |
+
+## Task board — Plan P2 (JavaScript, spec `2026-09-03-code-flow-p2-javascript-design.md`)
+
+Plan: `docs/superpowers/plans/2026-09-04-p2-javascript.md`. All on branch `p2-javascript`, committed per task, **unmerged** at handoff.
+
+| Task | Deliverable | State |
+|---|---|---|
+| 1 | `tree-sitter-javascript@0.25.0` + ABI loader probe | ✅ `3c18e18` (wasm 411770B as spec'd; `grammars` script; probe passes) |
+| 2 | SynNode boundary review, committed before adapter code | ✅ `e85492a` (no builder change; dump-verified header) |
+| 3 | JS adapter: functions → try/finally + 16 focused tests | ✅ `94777a8` (else_clause, statement_identifier labels, get/set skip) |
+| 4 | 14 golden fixtures under the existing harness | ✅ `7b3bc12` (snapshots read before accepting, not `-u` blind) |
+| 5 | 4th isomorphism column + wiring + migration 0007 | ✅ `263b4e3` (detect + TS veto, pickers, CodeEditor, actions, chat guard, landing copy; migration applied to hosted, RLS 30/30, live probe row written + removed) |
+| 6 | Verification gate + permanent JS browser smoke | ✅ `881c1eb` (`javascript.spec.ts` 3 tests; build trace has all 4 wasms; Lighthouse 100/100/100) |
+
+Still owed: merge to `main`, then the spec §12 prod check (paste JS + TS on live `/demo`).
 
 ## Bugs found by reviewing output rather than trusting green tests
 
@@ -715,6 +731,49 @@ Task 4 shipped E2E + CSS fixes, no page structure. Hallmark's own rule says
 component-scope work doesn't log (no rotation to record); appending a
 duplicate Map/Diagram entry would fake a second build. The next *page-flow*
 run rotates from the single 2026-09-03 entry as normal.
+
+### 2026-09-04 — P2 boundary review: three dump-verified corrections, still no builder change
+The scratch dump (deleted after) confirmed the plan's guesses mostly right and
+three things wrong: (1) `else` arrives wrapped in `else_clause` (unwrap one
+level, unlike Java's direct alternative); (2) labels are `statement_identifier`,
+not `identifier` — in `labeled_statement`, `break_statement`, and
+`continue_statement` alike; (3) getters/setters are plain `method_definition`,
+distinguished only by a first ANONYMOUS child of `get`/`set` (`static`/`async`
+ride the same position and must not be skipped — check `!isNamed`, not text
+alone). `for...of`/`for...in` share `for_in_statement` (both → `foreach`, so no
+disambiguation needed); `export function` nests in `export_statement`;
+`let`/`const` is `lexical_declaration` vs `var`'s `variable_declaration`.
+Call edges need no adapter work — the builder derives them textually, which is
+why recursion and the `Search.find → binarySearch` edge show up for free.
+
+### 2026-09-04 — P2 detection: TS veto returns null, and that is load-bearing
+`detectLanguage` returns `null` (leave selection unchanged) when JS wins on
+TS-annotated source — it does NOT fall through to a second choice, because any
+choice would route TS to an adapter that errors. The veto regex covers return
+types (`): T`), annotated bindings (`x: string`), and top-level `interface` /
+`type`. The adapter side stays honest independently: TS through the JS grammar
+yields ERROR nodes → error diagnostics, never a clean diagram (pinned test).
+
+### 2026-09-04 — P2 migration 0007 widens both language CHECKs, applied live
+`projects_language_check` / `snapshots_language_check` (inline in 0001, hence
+auto-named) now include `'javascript'`. Applied to hosted
+`gsfosuvhysdesstetwjh` via migration tooling; verified by selecting the
+constraint defs, running RLS 30/30 after, and a live probe row
+(`language='javascript'`, written then deleted — no residue). Also fixed two
+straggler enumerations the wiring checklist missed: the chat route's
+`isLanguage` and the landing page's language list (now "all four").
+
+### 2026-09-04 — Fresh worktrees have no `.env.local`: copy it from the parent
+`.env.local` is gitignored, so a new worktree runs the RLS suite into
+`NEXT_PUBLIC_SUPABASE_URL missing` (21 skips + suite failure). Copy the file
+from the repo root — it stays gitignored in the worktree too. Same-machine
+only; never commit it.
+
+### 2026-09-04 — P2 keeps a permanent JS browser spec, not a throwaway script
+`tests/e2e/javascript.spec.ts` pastes through the real clipboard path on
+`/demo` (arrow → detected + 10-node shape, class method, TS-annotation veto)
+with a zero-console-error gate per test. No auth needed, so it runs anywhere
+the dev server runs. E2E is now 16/16.
 
 ---
 
